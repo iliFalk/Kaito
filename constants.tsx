@@ -1,11 +1,10 @@
-
 import React from 'react';
 import type { SearchEngine, Shortcut, AIModel } from './types';
 import { GoogleIcon, PerplexityIcon, PhindIcon } from './components/Icons';
 
 export const PANEL_ROUTES = {
   SEARCH: '/search',
-  CONVERSATION: '/conversation',
+  CONVERSATION: '/',
   OPTIONS: '/options',
   MODELS: '/models',
   SETTINGS: '/settings',

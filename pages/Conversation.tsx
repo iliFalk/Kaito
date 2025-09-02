@@ -261,18 +261,18 @@ const Conversation: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                    <div className="relative border-t border-gray-200 pt-2">
+                    <div className="flex items-end gap-2 border-t border-gray-200 pt-2">
                         <textarea
                             ref={textareaRef}
                             value={userInput}
                             onChange={e => setUserInput(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                             placeholder="Enter message..."
-                            className="w-full bg-white p-2 text-base resize-none focus:ring-0 focus:outline-none pr-20 max-h-40"
+                            className="w-full bg-white p-2 text-base resize-none focus:ring-0 focus:outline-none max-h-40"
                             rows={1}
                             disabled={isLoading}
                         />
-                        <div className="absolute bottom-2 right-2" ref={actionsDropdownRef}>
+                        <div className="relative flex-shrink-0" ref={actionsDropdownRef}>
                             <div className="flex items-center bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden">
                                 <button
                                     onClick={handleSend}

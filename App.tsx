@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Search from './pages/Search';
@@ -84,9 +83,9 @@ const App: React.FC = () => {
       <HashRouter>
         <Layout>
           <Routes>
-            <Route path="/" element={<Navigate to={PANEL_ROUTES.CONVERSATION} replace />} />
-            <Route path={PANEL_ROUTES.SEARCH} element={<Search />} />
             <Route path={PANEL_ROUTES.CONVERSATION} element={<Conversation />} />
+            <Route path="/conversation" element={<Navigate to="/" replace />} />
+            <Route path={PANEL_ROUTES.SEARCH} element={<Search />} />
             <Route path={PANEL_ROUTES.OPTIONS} element={<Options />} />
             <Route path={PANEL_ROUTES.MODELS} element={<Models />} />
             <Route path={PANEL_ROUTES.SETTINGS} element={<Settings />} />
