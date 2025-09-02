@@ -1,10 +1,9 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Message, AIModel } from '../types';
+import type { Message, AIModel, Shortcut } from '../types';
 import { Sender } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { DEFAULT_MODELS, PANEL_ROUTES } from '../constants';
+import { DEFAULT_MODELS, PANEL_ROUTES, DEFAULT_SHORTCUTS } from '../constants';
 import { generateChatStream } from '../services/geminiService';
 import { UserIcon, SparklesIcon, Icon } from '../components/Icons';
 
@@ -74,13 +73,16 @@ const Conversation: React.FC = () => {
 
     const [models] = useLocalStorage<AIModel[]>('ai_models', DEFAULT_MODELS);
     const [selectedModel, setSelectedModel] = useLocalStorage<string>('selected_ai_model', DEFAULT_MODELS[0]?.id || '');
+    const [shortcuts] = useLocalStorage<Shortcut[]>('shortcuts', DEFAULT_SHORTCUTS);
     const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+    const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
     
     const navigate = useNavigate();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const modelDropdownRef = useRef<HTMLDivElement>(null);
+    const actionsDropdownRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -99,6 +101,9 @@ const Conversation: React.FC = () => {
         const handleClickOutside = (event: MouseEvent) => {
             if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target as Node)) {
                 setIsModelDropdownOpen(false);
+            }
+            if (actionsDropdownRef.current && !actionsDropdownRef.current.contains(event.target as Node)) {
+                setIsActionsDropdownOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -177,7 +182,7 @@ const Conversation: React.FC = () => {
                 )
             );
         }
-    }, [userInput, attachedFile, quotedText, messages, filePreview, selectedModel, navigate]);
+    }, [userInput, attachedFile, quotedText, messages, filePreview, selectedModel]);
 
     return (
         <div className="flex flex-col h-full bg-gray-50 text-gray-800">
@@ -263,18 +268,53 @@ const Conversation: React.FC = () => {
                             onChange={e => setUserInput(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                             placeholder="Enter message..."
-                            className="w-full bg-white p-2 text-base resize-none focus:ring-0 focus:outline-none pr-28 max-h-40"
+                            className="w-full bg-white p-2 text-base resize-none focus:ring-0 focus:outline-none pr-20 max-h-40"
                             rows={1}
                             disabled={isLoading}
                         />
-                        <div className="absolute bottom-2 right-2 flex items-center gap-2">
-                            <button className="text-xs font-medium text-gray-500 bg-gray-100 rounded-md px-2 py-1.5 hover:bg-gray-200 flex items-center gap-1" aria-label="Ask AI">
-                                <SparklesIcon className="w-4 h-4"/>
-                                Ask AI
-                            </button>
-                            <button onClick={handleSend} disabled={isLoading || (!userInput.trim() && !attachedFile)} className="p-2 bg-blue-600 text-white rounded-full disabled:bg-gray-300 hover:bg-blue-500 transition-colors" aria-label="Send message">
-                                <Icon name="PaperAirplaneIcon" className="w-5 h-5"/>
-                            </button>
+                        <div className="absolute bottom-2 right-2" ref={actionsDropdownRef}>
+                            <div className="flex items-center bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden">
+                                <button
+                                    onClick={handleSend}
+                                    disabled={isLoading || (!userInput.trim() && !attachedFile)}
+                                    className="p-2.5 text-blue-600 disabled:text-gray-400 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    aria-label="Send message">
+                                    <Icon name="PaperAirplaneIcon" className="w-5 h-5" />
+                                </button>
+                                <div className="w-px self-stretch bg-gray-200/80"></div>
+                                <button
+                                    onClick={() => setIsActionsDropdownOpen(prev => !prev)}
+                                    className="p-2 text-gray-500 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    aria-label="Quick actions"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {isActionsDropdownOpen && (
+                                <div className="absolute bottom-full mb-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10 right-0">
+                                    <ul className="py-1 max-h-48 overflow-y-auto">
+                                        {shortcuts.map(shortcut => (
+                                            <li key={shortcut.id}>
+                                                <button
+                                                    onClick={() => {
+                                                        const newPrompt = shortcut.prompt.replace('{{selected_text}}', quotedText || '');
+                                                        setUserInput(userInput ? `${userInput}\n${newPrompt}` : newPrompt);
+                                                        setIsActionsDropdownOpen(false);
+                                                        textareaRef.current?.focus();
+                                                    }}
+                                                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3"
+                                                >
+                                                    <Icon name={shortcut.icon} className="w-5 h-5 text-gray-500" />
+                                                    <span className="truncate">{shortcut.title}</span>
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
