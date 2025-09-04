@@ -368,11 +368,6 @@ const Conversation: React.FC = () => {
                                     <Icon name="CameraIcon" className="w-5 h-5"/>
                                 </button>
                             </div>
-                            <div className="flex items-center text-gray-500 flex-shrink-0">
-                                <button onClick={() => navigate(PANEL_ROUTES.SETTINGS)} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Settings">
-                                    <Icon name="Cog6ToothIcon" className="w-5 h-5" />
-                                </button>
-                            </div>
                         </div>
                     )}
 

@@ -58,6 +58,9 @@ const Header: React.FC = () => {
             <button className="text-gray-500 hover:text-blue-500" aria-label="History">
               <Icon name="ClockIcon" className="w-6 h-6" />
             </button>
+            <button onClick={() => navigate(PANEL_ROUTES.SETTINGS)} className="text-gray-500 hover:text-blue-500" aria-label="Settings">
+              <Icon name="Cog6ToothIcon" className="w-6 h-6" />
+            </button>
           </>
         )}
       </div>
