@@ -5,7 +5,7 @@ import Conversation from './pages/Conversation';
 import Options from './pages/Options';
 import Models from './pages/Models';
 import Settings from './pages/Settings';
-import { AppContextProvider } from './context/AppContext';
+import { AppContextProvider, useAppContext } from './context/AppContext';
 import { PANEL_ROUTES } from './constants';
 import { Icon } from './components/Icons';
 
@@ -18,13 +18,16 @@ const pageTitles: { [key: string]: string } = {
 };
 
 const Header: React.FC = () => {
+  const { newChat } = useAppContext();
   const location = useLocation();
   const navigate = useNavigate();
   const title = pageTitles[location.pathname] || 'Jain';
   
   const handleNewChat = () => {
-    window.location.hash = PANEL_ROUTES.CONVERSATION;
-    window.location.reload();
+    if (location.pathname !== PANEL_ROUTES.CONVERSATION) {
+        navigate(PANEL_ROUTES.CONVERSATION);
+    }
+    newChat();
   };
 
   const showBackButton = [
@@ -80,19 +83,26 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
-const App: React.FC = () => {
-  return (
-    <AppContextProvider>
-      <HashRouter>
-        <Layout>
-          <Routes>
-            <Route path={PANEL_ROUTES.CONVERSATION} element={<Conversation />} />
+const AppRoutes: React.FC = () => {
+    const { conversationKey } = useAppContext();
+    return (
+        <Routes>
+            <Route path={PANEL_ROUTES.CONVERSATION} element={<Conversation key={conversationKey} />} />
             <Route path="/conversation" element={<Navigate to="/" replace />} />
             <Route path={PANEL_ROUTES.SEARCH} element={<Search />} />
             <Route path={PANEL_ROUTES.OPTIONS} element={<Options />} />
             <Route path={PANEL_ROUTES.MODELS} element={<Models />} />
             <Route path={PANEL_ROUTES.SETTINGS} element={<Settings />} />
-          </Routes>
+        </Routes>
+    );
+};
+
+const App: React.FC = () => {
+  return (
+    <AppContextProvider>
+      <HashRouter>
+        <Layout>
+          <AppRoutes />
         </Layout>
       </HashRouter>
     </AppContextProvider>
