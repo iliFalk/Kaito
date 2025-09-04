@@ -33,5 +33,12 @@ export interface SearchEngine {
 export interface AIModel {
   id: string;
   name: string;
+  model: string;
   isDefault?: boolean;
+  apiType?: string;
+  apiKey?: string;
+  apiBaseUrl?: string;
+  supportImage?: boolean;
+  contextWindow?: number;
+  temperature?: number;
 }

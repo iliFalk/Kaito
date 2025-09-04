@@ -24,5 +24,5 @@ export const DEFAULT_SHORTCUTS: Shortcut[] = [
 ];
 
 export const DEFAULT_MODELS: AIModel[] = [
-  { id: 'gemini-2.5-flash', name: 'gemini-2.5-flash', isDefault: true },
+  { id: 'gemini-2.5-flash', name: 'gemini-2.5-flash', model: 'gemini-2.5-flash', isDefault: true },
 ];

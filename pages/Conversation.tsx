@@ -128,18 +128,20 @@ const Conversation: React.FC = () => {
         if(fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    const handleSend = useCallback(async () => {
-        const trimmedInput = userInput.trim();
-        if (!trimmedInput && !attachedFile) return;
+    const handleSend = useCallback(async (promptOverride?: string) => {
+        const textToSend = typeof promptOverride === 'string' ? promptOverride : userInput.trim();
+        const fileToSend = attachedFile;
+
+        if (!textToSend && !fileToSend) return;
 
         setIsLoading(true);
         const userMessage: Message = {
             id: Date.now().toString(),
             sender: Sender.User,
-            text: trimmedInput,
+            text: textToSend,
             quotedText: quotedText,
             filePreview: filePreview || undefined,
-            fileName: attachedFile?.name,
+            fileName: fileToSend?.name,
         };
         const aiMessageId = (Date.now() + 1).toString();
 
@@ -154,7 +156,7 @@ const Conversation: React.FC = () => {
                 parts: [{ text: msg.text }]
             }));
 
-            const stream = await generateChatStream(trimmedInput, history, selectedModel, attachedFile || undefined);
+            const stream = await generateChatStream(textToSend, history, selectedModel, fileToSend || undefined);
             
             let fullText = '';
             for await (const chunk of stream) {
@@ -182,7 +184,12 @@ const Conversation: React.FC = () => {
                 )
             );
         }
-    }, [userInput, attachedFile, quotedText, messages, filePreview, selectedModel]);
+    }, [userInput, attachedFile, filePreview, quotedText, messages, selectedModel]);
+    
+    const handleFileAction = (prompt: string) => {
+        if (!attachedFile) return;
+        handleSend(prompt);
+    };
 
     return (
         <div className="flex flex-col h-full bg-gray-50 text-gray-800">
@@ -201,67 +208,86 @@ const Conversation: React.FC = () => {
                 )}
                 <div ref={messagesEndRef} />
             </div>
-            
-            {(filePreview || quotedText) && (
-                <div className="px-4 pb-2">
-                    <div className="p-2 bg-gray-200 rounded-lg flex items-start gap-2">
-                        {filePreview && (
-                        <div className="relative">
-                            <img src={filePreview} alt="preview" className="h-12 w-12 object-cover rounded"/>
-                            <button onClick={removeAttachment} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full h-4 w-4 text-xs flex items-center justify-center">&times;</button>
-                        </div>
-                        )}
-                        {quotedText && (
-                        <div className="flex-1 relative">
-                            <p className="text-xs text-gray-600 italic bg-gray-300 p-2 rounded line-clamp-2">"{quotedText}"</p>
-                            <button onClick={() => setQuotedText('')} className="absolute top-0 right-0 text-gray-500 hover:text-gray-800">&times;</button>
-                        </div>
-                        )}
-                    </div>
-                </div>
-            )}
 
             <div className="p-3 bg-transparent">
-                <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-2 border border-gray-200">
-                    <div className="flex items-center justify-between mb-2 px-1">
-                        <div className="relative" ref={modelDropdownRef}>
-                            <button onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)} className="flex items-center gap-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg px-3 py-1.5 hover:bg-gray-200" aria-label="Select AI Model">
-                                <Icon name="CpuChipIcon" className="w-4 h-4" />
-                                <span className="max-w-[120px] truncate">{selectedModel}</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" /></svg>
-                            </button>
-                            {isModelDropdownOpen && (
-                                <div className="absolute bottom-full mb-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                                    <ul className="py-1 max-h-48 overflow-y-auto">
-                                        {models.map(model => (
-                                            <li key={model.id}>
-                                                <button onClick={() => { setSelectedModel(model.id); setIsModelDropdownOpen(false); }} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between">
-                                                    <span className="truncate">{model.name}</span>
-                                                    {selectedModel === model.id && <Icon name="CheckCircleIcon" className="w-4 h-4 text-blue-600"/>}
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
+                <div className={`bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-2 border ${attachedFile ? 'border-blue-300' : 'border-gray-200'}`}>
+                    {attachedFile ? (
+                        <div>
+                            <div className="flex items-center justify-between p-1">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
+                                        <div className="text-center">
+                                            <svg className="w-6 h-6 mx-auto text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9Z" />
+                                            </svg>
+                                            <p className="text-[9px] font-bold text-blue-500">{attachedFile.name.split('.').pop()?.toUpperCase()}</p>
+                                        </div>
+                                    </div>
+                                    <span className="text-sm font-medium text-gray-800 truncate max-w-xs">{attachedFile.name}</span>
                                 </div>
-                            )}
+                                <button onClick={removeAttachment} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+                                    <Icon name="TrashIcon" className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="mt-2 mb-2 flex items-center gap-2 px-1">
+                                <button onClick={() => handleFileAction("Extract text from the image and translate it to Simplified Chinese")} className="flex items-center gap-1 text-sm bg-blue-100 text-blue-800 px-3 py-1.5 rounded-lg hover:bg-blue-200 font-medium">
+                                    <span>Extract & Translate:</span>
+                                    <span className="font-semibold">简体中文</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" /></svg>
+                                </button>
+                                <button onClick={() => handleFileAction("Extract all text from this image")} className="text-sm bg-blue-100 text-blue-800 px-3 py-1.5 rounded-lg hover:bg-blue-200 font-medium">
+                                    Grab Text
+                                </button>
+                                <button onClick={() => handleFileAction("Describe this image")} className="text-sm bg-blue-100 text-blue-800 px-3 py-1.5 rounded-lg hover:bg-blue-200 font-medium">
+                                    Describe
+                                </button>
+                            </div>
+                            <hr className="border-gray-200"/>
                         </div>
-                        <div className="flex items-center text-gray-500 flex-shrink-0">
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-                            <button onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Attach file">
-                                <Icon name="PaperClipIcon" className="w-5 h-5"/>
-                            </button>
-                            <button className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Paste from clipboard">
-                                <Icon name="ClipboardDocumentIcon" className="w-5 h-5"/>
-                            </button>
-                            <button className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Copy conversation">
-                                <Icon name="DocumentDuplicateIcon" className="w-5 h-5"/>
-                            </button>
-                            <button onClick={() => navigate(PANEL_ROUTES.SETTINGS)} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Settings">
-                                <Icon name="Cog6ToothIcon" className="w-5 h-5" />
-                            </button>
+                    ) : (
+                        <div className="flex items-center justify-between mb-2 px-1">
+                            <div className="relative" ref={modelDropdownRef}>
+                                <button onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)} className="flex items-center gap-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg px-3 py-1.5 hover:bg-gray-200" aria-label="Select AI Model">
+                                    <Icon name="CpuChipIcon" className="w-4 h-4" />
+                                    <span className="max-w-[120px] truncate">{selectedModel}</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" /></svg>
+                                </button>
+                                {isModelDropdownOpen && (
+                                    <div className="absolute bottom-full mb-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                                        <ul className="py-1 max-h-48 overflow-y-auto">
+                                            {models.map(model => (
+                                                <li key={model.id}>
+                                                    <button onClick={() => { setSelectedModel(model.id); setIsModelDropdownOpen(false); }} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between">
+                                                        <span className="truncate">{model.name}</span>
+                                                        {selectedModel === model.id && <Icon name="CheckCircleIcon" className="w-4 h-4 text-blue-600"/>}
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex items-center text-gray-500">
+                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                                <button onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Attach file">
+                                    <Icon name="PaperClipIcon" className="w-5 h-5"/>
+                                </button>
+                                <button className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Paste from clipboard">
+                                    <Icon name="ClipboardDocumentIcon" className="w-5 h-5"/>
+                                </button>
+                                <button className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Copy conversation">
+                                    <Icon name="DocumentDuplicateIcon" className="w-5 h-5"/>
+                                </button>
+                            </div>
+                            <div className="flex items-center text-gray-500 flex-shrink-0">
+                                <button onClick={() => navigate(PANEL_ROUTES.SETTINGS)} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Settings">
+                                    <Icon name="Cog6ToothIcon" className="w-5 h-5" />
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-end gap-2 border-t border-gray-200 pt-2">
+                    )}
+
+                    <div className={`flex items-end gap-2 ${!attachedFile ? 'border-t border-gray-200 pt-2' : ''}`}>
                         <textarea
                             ref={textareaRef}
                             value={userInput}
@@ -275,7 +301,7 @@ const Conversation: React.FC = () => {
                         <div className="relative flex-shrink-0" ref={actionsDropdownRef}>
                             <div className="flex items-center bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden">
                                 <button
-                                    onClick={handleSend}
+                                    onClick={() => handleSend()}
                                     disabled={isLoading || (!userInput.trim() && !attachedFile)}
                                     className="p-2.5 text-blue-600 disabled:text-gray-400 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
                                     aria-label="Send message">
