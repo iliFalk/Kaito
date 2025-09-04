@@ -7,6 +7,7 @@ import { DEFAULT_MODELS, PANEL_ROUTES, DEFAULT_SHORTCUTS } from '../constants';
 import { generateChatStream } from '../services/geminiService';
 import { UserIcon, SparklesIcon, Icon } from '../components/Icons';
 import ScreenshotOverlay from '../components/ScreenshotOverlay';
+import { useAppContext } from '../context/AppContext';
 
 // Basic markdown to HTML renderer
 const SimpleMarkdown: React.FC<{ content: string }> = React.memo(({ content }) => {
@@ -71,7 +72,15 @@ const UserMessage: React.FC<{ message: Message }> = ({ message }) => (
 );
 
 const Conversation: React.FC = () => {
-    const [messages, setMessages] = useState<Message[]>([]);
+    const { 
+        conversations, 
+        currentConversationId, 
+        addMessage, 
+        updateStreamingMessage, 
+        getConversationHistory,
+        newChat
+    } = useAppContext();
+
     const [userInput, setUserInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [attachedFile, setAttachedFile] = useState<File | null>(null);
@@ -93,9 +102,17 @@ const Conversation: React.FC = () => {
     const modelDropdownRef = useRef<HTMLDivElement>(null);
     const actionsDropdownRef = useRef<HTMLDivElement>(null);
 
+    const messages = currentConversationId ? conversations[currentConversationId] || [] : [];
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
+
+    useEffect(() => {
+        if (!currentConversationId) {
+            newChat();
+        }
+    }, [currentConversationId, newChat]);
 
     useEffect(scrollToBottom, [messages]);
     
@@ -158,8 +175,6 @@ const Conversation: React.FC = () => {
     }, []);
 
     const handlePasteContext = () => {
-        // In a real extension, this would be retrieved from browser APIs.
-        // For this demo, we'll use mock data from the screenshot.
         setPageContext({
             title: 'Google AI Studio',
             url: 'https://aistudio.google.com/u/1/apps/drive/11z7WgqCtAQYOdZfrr1WE-jHlykRLcD...',
@@ -175,9 +190,10 @@ const Conversation: React.FC = () => {
         const fileToSend = attachedFile;
         const contextToSend = pageContext;
 
-        if (!textToSend && !fileToSend) return;
+        if ((!textToSend && !fileToSend) || !currentConversationId) return;
 
         setIsLoading(true);
+
         const userMessage: Message = {
             id: Date.now().toString(),
             sender: Sender.User,
@@ -187,53 +203,43 @@ const Conversation: React.FC = () => {
             fileName: fileToSend?.name,
             pageContext: contextToSend || undefined,
         };
+        addMessage(currentConversationId, userMessage);
+        
         const aiMessageId = (Date.now() + 1).toString();
+        const aiMessage: Message = { id: aiMessageId, sender: Sender.AI, text: '', isStreaming: true };
+        addMessage(currentConversationId, aiMessage);
         
         const promptForApi = contextToSend 
             ? `Regarding the page "${contextToSend.title}" (${contextToSend.url}):\n\n${textToSend}` 
             : textToSend;
 
-        setMessages(prev => [...prev, userMessage, { id: aiMessageId, sender: Sender.AI, text: '', isStreaming: true }]);
         setUserInput('');
         setQuotedText('');
         removeAttachment();
         setPageContext(null);
 
         try {
-            const history = messages.map(msg => ({
-                role: msg.sender === Sender.User ? 'user' : 'model',
-                parts: [{ text: msg.text }]
-            }));
-
+            const history = getConversationHistory(currentConversationId);
             const stream = await generateChatStream(promptForApi, history, selectedModel, fileToSend || undefined);
             
-            let fullText = '';
             for await (const chunk of stream) {
                 const chunkText = chunk.text;
-                fullText += chunkText;
-                setMessages(prev =>
-                    prev.map(msg =>
-                        msg.id === aiMessageId ? { ...msg, text: fullText } : msg
-                    )
-                );
+                updateStreamingMessage(currentConversationId, aiMessageId, chunkText, false);
             }
+            updateStreamingMessage(currentConversationId, aiMessageId, '', true);
+
         } catch (error) {
             console.error("Gemini API error:", error);
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-            setMessages(prev =>
-                prev.map(msg =>
-                    msg.id === aiMessageId ? { ...msg, error: `Failed to get response: ${errorMessage}` } : msg
-                )
-            );
+            updateStreamingMessage(currentConversationId, aiMessageId, '', true, `Failed to get response: ${errorMessage}`);
         } finally {
             setIsLoading(false);
-            setMessages(prev =>
-                prev.map(msg =>
-                    msg.id === aiMessageId ? { ...msg, isStreaming: false } : msg
-                )
-            );
         }
-    }, [userInput, attachedFile, filePreview, quotedText, messages, selectedModel, pageContext]);
+    }, [
+        userInput, attachedFile, filePreview, quotedText, pageContext, 
+        currentConversationId, addMessage, updateStreamingMessage, 
+        getConversationHistory, selectedModel
+    ]);
     
     const handleFileAction = (prompt: string) => {
         if (!attachedFile) return;

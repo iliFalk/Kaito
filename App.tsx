@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Search from './pages/Search';
 import Conversation from './pages/Conversation';
@@ -17,7 +17,75 @@ const pageTitles: { [key: string]: string } = {
   [PANEL_ROUTES.SEARCH]: 'AI Search',
 };
 
-const Header: React.FC = () => {
+const HistoryModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
+  const { conversations, selectConversation, deleteConversation, newChat, currentConversationId } = useAppContext();
+  
+  if (!isOpen) return null;
+
+  const handleSelectConversation = (id: string) => {
+    selectConversation(id);
+    onClose();
+  };
+
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (Object.keys(conversations).length > 1) {
+        if(window.confirm("Are you sure you want to delete this conversation?")) {
+            deleteConversation(id);
+        }
+    }
+  };
+  
+  const handleNewChat = () => {
+    newChat();
+    onClose();
+  };
+  
+  const sortedConversations = Object.entries(conversations).sort(([idA], [idB]) => Number(idB) - Number(idA));
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={onClose} role="dialog" aria-modal="true">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-sm border border-gray-200 flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-gray-200 flex-shrink-0">
+                <h2 className="text-lg font-semibold text-gray-800">Chat History</h2>
+            </div>
+            <div className="p-2 space-y-1 overflow-y-auto flex-1">
+                {sortedConversations.map(([id, messages]) => {
+                    const firstUserMessage = messages.find(m => m.sender === 'user');
+                    const title = firstUserMessage?.text || "New Chat";
+                    const isActive = id === currentConversationId;
+                    return (
+                        <div
+                            key={id}
+                            onClick={() => handleSelectConversation(id)}
+                            className={`flex items-center p-2.5 rounded-md cursor-pointer group transition-colors ${isActive ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
+                        >
+                            <Icon name="ChatBubbleLeftRightIcon" className={`w-5 h-5 mr-3 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                            <span className={`flex-1 font-medium truncate pr-2 ${isActive ? 'text-blue-800' : 'text-gray-800'}`} title={title}>{title}</span>
+                            <button
+                                onClick={(e) => handleDelete(e, id)}
+                                className="p-1.5 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                                aria-label="Delete conversation"
+                                disabled={Object.keys(conversations).length <= 1}
+                            >
+                                <Icon name="TrashIcon" className="w-4 h-4" />
+                            </button>
+                        </div>
+                    );
+                })}
+            </div>
+            <div className="p-3 bg-gray-50/70 border-t border-gray-200 flex-shrink-0">
+                 <button onClick={handleNewChat} className="w-full py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-500 transition-colors">
+                    Start New Chat
+                </button>
+            </div>
+        </div>
+    </div>
+  );
+};
+
+
+const Header: React.FC<{ onHistoryClick: () => void; }> = ({ onHistoryClick }) => {
   const { newChat } = useAppContext();
   const location = useLocation();
   const navigate = useNavigate();
@@ -58,7 +126,7 @@ const Header: React.FC = () => {
             <button onClick={handleNewChat} className="text-gray-500 hover:text-blue-500" aria-label="New Chat">
               <Icon name="ChatBubbleBottomCenterPlusIcon" className="w-6 h-6" />
             </button>
-            <button className="text-gray-500 hover:text-blue-500" aria-label="History">
+            <button onClick={onHistoryClick} className="text-gray-500 hover:text-blue-500" aria-label="History">
               <Icon name="ClockIcon" className="w-6 h-6" />
             </button>
             <button onClick={() => navigate(PANEL_ROUTES.SETTINGS)} className="text-gray-500 hover:text-blue-500" aria-label="Settings">
@@ -73,21 +141,22 @@ const Header: React.FC = () => {
 
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   return (
     <div className="flex flex-col h-screen bg-gray-50 text-gray-800">
-      <Header />
+      <Header onHistoryClick={() => setIsHistoryOpen(true)} />
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>
+      <HistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
     </div>
   );
 };
 
 const AppRoutes: React.FC = () => {
-    const { conversationKey } = useAppContext();
     return (
         <Routes>
-            <Route path={PANEL_ROUTES.CONVERSATION} element={<Conversation key={conversationKey} />} />
+            <Route path={PANEL_ROUTES.CONVERSATION} element={<Conversation />} />
             <Route path="/conversation" element={<Navigate to="/" replace />} />
             <Route path={PANEL_ROUTES.SEARCH} element={<Search />} />
             <Route path={PANEL_ROUTES.OPTIONS} element={<Options />} />
