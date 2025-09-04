@@ -13,6 +13,7 @@ export interface Message {
   quotedText?: string;
   filePreview?: string; // base64 data URL
   fileName?: string;
+  pageContext?: { title: string; url: string };
 }
 
 export interface Shortcut {

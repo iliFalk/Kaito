@@ -57,6 +57,12 @@ const UserMessage: React.FC<{ message: Message }> = ({ message }) => (
                     <p className="text-xs text-blue-100 mt-1">{message.fileName}</p>
                  </div>
              )}
+             {message.pageContext && (
+                 <div className="mt-2 p-2 border-l-2 border-blue-400 bg-blue-500/50 rounded-r-md">
+                    <p className="text-xs text-blue-100 font-semibold">{message.pageContext.title}</p>
+                    <p className="text-xs text-blue-100 italic truncate">{message.pageContext.url}</p>
+                 </div>
+             )}
         </div>
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center order-2">
             <UserIcon className="w-5 h-5 text-gray-600" />
@@ -72,6 +78,7 @@ const Conversation: React.FC = () => {
     const [filePreview, setFilePreview] = useState<string | null>(null);
     const [quotedText, setQuotedText] = useState('');
     const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
+    const [pageContext, setPageContext] = useState<{ title: string; url: string } | null>(null);
 
     const [models] = useLocalStorage<AIModel[]>('ai_models', DEFAULT_MODELS);
     const [selectedModel, setSelectedModel] = useLocalStorage<string>('selected_ai_model', DEFAULT_MODELS[0]?.id || '');
@@ -150,10 +157,23 @@ const Conversation: React.FC = () => {
         setIsTakingScreenshot(false);
     }, []);
 
+    const handlePasteContext = () => {
+        // In a real extension, this would be retrieved from browser APIs.
+        // For this demo, we'll use mock data from the screenshot.
+        setPageContext({
+            title: 'Google AI Studio',
+            url: 'https://aistudio.google.com/u/1/apps/drive/11z7WgqCtAQYOdZfrr1WE-jHlykRLcD...',
+        });
+    };
+
+    const removePageContext = () => {
+        setPageContext(null);
+    };
 
     const handleSend = useCallback(async (promptOverride?: string) => {
         const textToSend = typeof promptOverride === 'string' ? promptOverride : userInput.trim();
         const fileToSend = attachedFile;
+        const contextToSend = pageContext;
 
         if (!textToSend && !fileToSend) return;
 
@@ -165,13 +185,19 @@ const Conversation: React.FC = () => {
             quotedText: quotedText,
             filePreview: filePreview || undefined,
             fileName: fileToSend?.name,
+            pageContext: contextToSend || undefined,
         };
         const aiMessageId = (Date.now() + 1).toString();
+        
+        const promptForApi = contextToSend 
+            ? `Regarding the page "${contextToSend.title}" (${contextToSend.url}):\n\n${textToSend}` 
+            : textToSend;
 
         setMessages(prev => [...prev, userMessage, { id: aiMessageId, sender: Sender.AI, text: '', isStreaming: true }]);
         setUserInput('');
         setQuotedText('');
         removeAttachment();
+        setPageContext(null);
 
         try {
             const history = messages.map(msg => ({
@@ -179,7 +205,7 @@ const Conversation: React.FC = () => {
                 parts: [{ text: msg.text }]
             }));
 
-            const stream = await generateChatStream(textToSend, history, selectedModel, fileToSend || undefined);
+            const stream = await generateChatStream(promptForApi, history, selectedModel, fileToSend || undefined);
             
             let fullText = '';
             for await (const chunk of stream) {
@@ -207,10 +233,28 @@ const Conversation: React.FC = () => {
                 )
             );
         }
-    }, [userInput, attachedFile, filePreview, quotedText, messages, selectedModel]);
+    }, [userInput, attachedFile, filePreview, quotedText, messages, selectedModel, pageContext]);
     
     const handleFileAction = (prompt: string) => {
         if (!attachedFile) return;
+        handleSend(prompt);
+    };
+
+    const handleContextAction = (action: 'Questions' | 'Key Points' | 'Summarize') => {
+        if (!pageContext) return;
+        
+        let prompt = '';
+        switch(action) {
+            case 'Questions':
+                prompt = `Generate some key questions about the content of this page.`;
+                break;
+            case 'Key Points':
+                prompt = `Extract the key points from the content of this page.`;
+                break;
+            case 'Summarize':
+                prompt = `Summarize the content of this page.`;
+                break;
+        }
         handleSend(prompt);
     };
 
@@ -234,7 +278,7 @@ const Conversation: React.FC = () => {
             </div>
 
             <div className="p-3 bg-transparent">
-                <div className={`bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-2 border ${attachedFile ? 'border-blue-300' : 'border-gray-200'}`}>
+                <div className={`bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-2 border ${attachedFile || pageContext ? 'border-blue-300' : 'border-gray-200'}`}>
                     {attachedFile ? (
                         <div>
                             <div className="flex items-center justify-between p-1">
@@ -268,6 +312,27 @@ const Conversation: React.FC = () => {
                             </div>
                             <hr className="border-gray-200"/>
                         </div>
+                    ) : pageContext ? (
+                        <div>
+                            <div className="bg-gray-100/80 rounded-lg p-2.5 mb-2">
+                                <div className="flex items-start">
+                                    <Icon name="LinkIcon" className="w-5 h-5 text-gray-500 mr-2.5 mt-0.5 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-sm text-gray-800 leading-tight">{pageContext.title}</p>
+                                        <p className="text-xs text-gray-500 truncate leading-tight mt-0.5">{pageContext.url}</p>
+                                    </div>
+                                    <button onClick={removePageContext} className="ml-2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-200 flex-shrink-0">
+                                        <Icon name="XMarkIcon" className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 px-1 mb-2">
+                                <button onClick={() => handleContextAction('Questions')} className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full hover:bg-blue-200 font-medium">Questions</button>
+                                <button onClick={() => handleContextAction('Key Points')} className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full hover:bg-blue-200 font-medium">Key Points</button>
+                                <button onClick={() => handleContextAction('Summarize')} className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full hover:bg-blue-200 font-medium">Summarize</button>
+                            </div>
+                            <hr className="border-gray-200"/>
+                        </div>
                     ) : (
                         <div className="flex items-center justify-between mb-2 px-1">
                             <div className="relative" ref={modelDropdownRef}>
@@ -296,8 +361,8 @@ const Conversation: React.FC = () => {
                                 <button onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Attach file">
                                     <Icon name="PaperClipIcon" className="w-5 h-5"/>
                                 </button>
-                                <button className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Paste from clipboard">
-                                    <Icon name="ClipboardDocumentIcon" className="w-5 h-5"/>
+                                <button onClick={handlePasteContext} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Paste from clipboard">
+                                    <Icon name="LinkIcon" className="w-5 h-5"/>
                                 </button>
                                 <button onClick={startScreenshot} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Take screenshot">
                                     <Icon name="CameraIcon" className="w-5 h-5"/>
@@ -311,7 +376,7 @@ const Conversation: React.FC = () => {
                         </div>
                     )}
 
-                    <div className={`flex items-end gap-2 ${!attachedFile ? 'border-t border-gray-200 pt-2' : ''}`}>
+                    <div className={`flex items-end gap-2 ${!attachedFile && !pageContext ? 'border-t border-gray-200 pt-2' : ''}`}>
                         <textarea
                             ref={textareaRef}
                             value={userInput}
