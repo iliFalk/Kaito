@@ -6,6 +6,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { DEFAULT_MODELS, PANEL_ROUTES, DEFAULT_SHORTCUTS } from '../constants';
 import { generateChatStream } from '../services/geminiService';
 import { UserIcon, SparklesIcon, Icon } from '../components/Icons';
+import ScreenshotOverlay from '../components/ScreenshotOverlay';
 
 // Basic markdown to HTML renderer
 const SimpleMarkdown: React.FC<{ content: string }> = React.memo(({ content }) => {
@@ -70,6 +71,7 @@ const Conversation: React.FC = () => {
     const [attachedFile, setAttachedFile] = useState<File | null>(null);
     const [filePreview, setFilePreview] = useState<string | null>(null);
     const [quotedText, setQuotedText] = useState('');
+    const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
 
     const [models] = useLocalStorage<AIModel[]>('ai_models', DEFAULT_MODELS);
     const [selectedModel, setSelectedModel] = useLocalStorage<string>('selected_ai_model', DEFAULT_MODELS[0]?.id || '');
@@ -127,6 +129,27 @@ const Conversation: React.FC = () => {
         setFilePreview(null);
         if(fileInputRef.current) fileInputRef.current.value = "";
     };
+
+    const startScreenshot = useCallback(() => {
+        setIsTakingScreenshot(true);
+    }, []);
+
+    const handleScreenshotCapture = useCallback((file: File) => {
+        if (file) {
+            setAttachedFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFilePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+        setIsTakingScreenshot(false);
+    }, []);
+
+    const cancelScreenshot = useCallback(() => {
+        setIsTakingScreenshot(false);
+    }, []);
+
 
     const handleSend = useCallback(async (promptOverride?: string) => {
         const textToSend = typeof promptOverride === 'string' ? promptOverride : userInput.trim();
@@ -193,6 +216,7 @@ const Conversation: React.FC = () => {
 
     return (
         <div className="flex flex-col h-full bg-gray-50 text-gray-800">
+            {isTakingScreenshot && <ScreenshotOverlay onCapture={handleScreenshotCapture} onClose={cancelScreenshot} />}
             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                 {messages.length === 0 && (
                      <div className="text-left text-gray-800">
@@ -275,8 +299,8 @@ const Conversation: React.FC = () => {
                                 <button className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Paste from clipboard">
                                     <Icon name="ClipboardDocumentIcon" className="w-5 h-5"/>
                                 </button>
-                                <button className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Copy conversation">
-                                    <Icon name="DocumentDuplicateIcon" className="w-5 h-5"/>
+                                <button onClick={startScreenshot} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Take screenshot">
+                                    <Icon name="CameraIcon" className="w-5 h-5"/>
                                 </button>
                             </div>
                             <div className="flex items-center text-gray-500 flex-shrink-0">

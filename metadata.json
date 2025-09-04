@@ -1,5 +1,7 @@
 {
   "name": "AI Sidekick",
   "description": "An AI-powered side panel extension to boost your productivity with integrated search, chat, and customizable quick actions.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "camera"
+  ]
 }
