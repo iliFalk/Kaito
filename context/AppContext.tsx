@@ -1,5 +1,5 @@
-import React, { createContext, useState, useContext, useMemo, useEffect } from 'react';
-import type { Message } from '../types';
+import React, { createContext, useState, useContext, useMemo, useEffect, useCallback } from 'react';
+import type { Message, Shortcut } from '../types';
 import { Sender } from '../types';
 
 interface AppContextType {
@@ -15,6 +15,18 @@ interface AppContextType {
   addMessage: (conversationId: string, message: Message) => void;
   updateStreamingMessage: (conversationId: string, messageId: string, chunk: string, isDone: boolean, error?: string) => void;
   getConversationHistory: (id: string) => { role: string; parts: { text: string }[] }[];
+
+  // Shortcut Action State
+  startConversationWithShortcut: (shortcut: Shortcut, selectedText: string) => void;
+  pendingShortcutAction: { shortcut: Shortcut; selectedText: string } | null;
+  clearPendingShortcutAction: () => void;
+
+  // FIX: Add missing properties for context menu state and actions.
+  isContextMenuVisible: boolean;
+  contextMenuPosition: { top: number; left: number };
+  selectedText: string;
+  hideContextMenu: () => void;
+  showContextMenu: (top: number, left: number, text: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -23,6 +35,24 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [searchText, setSearchText] = useState('');
   const [conversations, setConversations] = useState<Record<string, Message[]>>({});
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  
+  // Shortcut Action State
+  const [pendingShortcutAction, setPendingShortcutAction] = useState<{ shortcut: Shortcut; selectedText: string } | null>(null);
+
+  // Context Menu State
+  const [isContextMenuVisible, setIsContextMenuVisible] = useState(false);
+  const [contextMenuPosition, setContextMenuPosition] = useState({ top: 0, left: 0 });
+  const [selectedText, setSelectedText] = useState('');
+
+  const showContextMenu = useCallback((top: number, left: number, text: string) => {
+    setContextMenuPosition({ top, left });
+    setSelectedText(text);
+    setIsContextMenuVisible(true);
+  }, []);
+
+  const hideContextMenu = useCallback(() => {
+    setIsContextMenuVisible(false);
+  }, []);
 
   const newChat = () => {
     const newId = Date.now().toString();
@@ -99,6 +129,14 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }));
   };
 
+  const startConversationWithShortcut = useCallback((shortcut: Shortcut, selectedText: string) => {
+    setPendingShortcutAction({ shortcut, selectedText });
+  }, []);
+
+  const clearPendingShortcutAction = useCallback(() => {
+    setPendingShortcutAction(null);
+  }, []);
+
   const value = useMemo(() => ({
     searchText,
     setSearchText,
@@ -110,7 +148,15 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     addMessage,
     updateStreamingMessage,
     getConversationHistory,
-  }), [searchText, conversations, currentConversationId]);
+    startConversationWithShortcut,
+    pendingShortcutAction,
+    clearPendingShortcutAction,
+    isContextMenuVisible,
+    contextMenuPosition,
+    selectedText,
+    showContextMenu,
+    hideContextMenu,
+  }), [searchText, conversations, currentConversationId, newChat, selectConversation, deleteConversation, addMessage, updateStreamingMessage, getConversationHistory, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, isContextMenuVisible, contextMenuPosition, selectedText, showContextMenu, hideContextMenu]);
 
   return (
     <AppContext.Provider value={value}>

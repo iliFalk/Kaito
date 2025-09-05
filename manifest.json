@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "AI Sidekick",
+  "description": "An AI-powered side panel extension to boost your productivity with integrated search, chat, and customizable quick actions.",
+  "version": "1.0",
+  "permissions": [
+    "sidePanel",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ]
+    }
+  ],
+  "action": {
+    "default_title": "Open AI Sidekick"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  }
+}

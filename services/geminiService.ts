@@ -35,5 +35,6 @@ export const generateChatStream = async (
   }
   messageParts.push({ text: prompt });
   
-  return chat.sendMessageStream({ parts: messageParts });
+  // FIX: The `sendMessageStream` method on a Chat object expects a `message` property in its payload, not `parts`.
+  return chat.sendMessageStream({ message: messageParts });
 };

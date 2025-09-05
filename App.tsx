@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Search from './pages/Search';
 import Conversation from './pages/Conversation';
@@ -162,6 +163,32 @@ const Header: React.FC<{ onHistoryClick: () => void; }> = ({ onHistoryClick }) =
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const { startConversationWithShortcut } = useAppContext();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // FIX: Cannot find name 'chrome'. Access via window to avoid TS errors.
+    const chrome = (window as any).chrome;
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
+        const handleMessage = (request: any) => {
+            if (request.type === 'executeShortcut') {
+                if (request.shortcut.id === 'settings') {
+                    navigate(PANEL_ROUTES.OPTIONS);
+                } else {
+                    startConversationWithShortcut(request.shortcut, request.selectedText);
+                    navigate(PANEL_ROUTES.CONVERSATION);
+                }
+            }
+        };
+
+        chrome.runtime.onMessage.addListener(handleMessage);
+
+        return () => {
+            chrome.runtime.onMessage.removeListener(handleMessage);
+        };
+    }
+  }, [startConversationWithShortcut, navigate]);
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 text-gray-800">
       <Header onHistoryClick={() => setIsHistoryOpen(prev => !prev)} />

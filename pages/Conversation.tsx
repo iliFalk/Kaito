@@ -79,7 +79,9 @@ const Conversation: React.FC = () => {
         addMessage, 
         updateStreamingMessage, 
         getConversationHistory,
-        newChat
+        newChat,
+        pendingShortcutAction,
+        clearPendingShortcutAction,
     } = useAppContext();
 
     const [userInput, setUserInput] = useState('');
@@ -186,10 +188,11 @@ const Conversation: React.FC = () => {
         setPageContext(null);
     };
 
-    const handleSend = useCallback(async (promptOverride?: string) => {
-        const textToSend = typeof promptOverride === 'string' ? promptOverride : userInput.trim();
+    const handleSend = useCallback(async (options?: { prompt?: string; quotedText?: string }) => {
+        const textToSend = options?.prompt ?? userInput.trim();
         const fileToSend = attachedFile;
         const contextToSend = pageContext;
+        const currentQuotedText = options?.quotedText ?? quotedText;
 
         if ((!textToSend && !fileToSend) || !currentConversationId) return;
 
@@ -199,7 +202,7 @@ const Conversation: React.FC = () => {
             id: Date.now().toString(),
             sender: Sender.User,
             text: textToSend,
-            quotedText: quotedText,
+            quotedText: currentQuotedText,
             filePreview: filePreview || undefined,
             fileName: fileToSend?.name,
             pageContext: contextToSend || undefined,
@@ -241,10 +244,19 @@ const Conversation: React.FC = () => {
         currentConversationId, addMessage, updateStreamingMessage, 
         getConversationHistory, selectedModel
     ]);
+
+    useEffect(() => {
+        if (pendingShortcutAction) {
+            const { shortcut, selectedText } = pendingShortcutAction;
+            const newPrompt = shortcut.prompt.replace('{{selected_text}}', selectedText);
+            handleSend({ prompt: newPrompt, quotedText: selectedText });
+            clearPendingShortcutAction();
+        }
+    }, [pendingShortcutAction, clearPendingShortcutAction, handleSend]);
     
     const handleFileAction = (prompt: string) => {
         if (!attachedFile) return;
-        handleSend(prompt);
+        handleSend({ prompt });
     };
 
     const handleContextAction = (action: 'Questions' | 'Key Points' | 'Summarize') => {
@@ -262,7 +274,7 @@ const Conversation: React.FC = () => {
                 prompt = `Summarize the content of this page.`;
                 break;
         }
-        handleSend(prompt);
+        handleSend({ prompt });
     };
 
     return (
