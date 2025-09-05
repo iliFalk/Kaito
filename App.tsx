@@ -8,8 +8,9 @@ import Settings from './pages/Settings';
 import { AppContextProvider, useAppContext } from './context/AppContext';
 import { PANEL_ROUTES } from './constants';
 import { Icon } from './components/Icons';
+import NeuralAnimation from './components/NeuralAnimation';
 
-const pageTitles: { [key: string]: string } = {
+const pageTitles: { [key:string]: string } = {
   [PANEL_ROUTES.CONVERSATION]: 'Jain',
   [PANEL_ROUTES.OPTIONS]: 'Quick Actions',
   [PANEL_ROUTES.MODELS]: 'AI Models',
@@ -19,8 +20,6 @@ const pageTitles: { [key: string]: string } = {
 
 const HistoryModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpen, onClose }) => {
   const { conversations, selectConversation, deleteConversation, newChat, currentConversationId } = useAppContext();
-  
-  if (!isOpen) return null;
 
   const handleSelectConversation = (id: string) => {
     selectConversation(id);
@@ -44,42 +43,59 @@ const HistoryModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isO
   const sortedConversations = Object.entries(conversations).sort(([idA], [idB]) => Number(idB) - Number(idA));
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={onClose} role="dialog" aria-modal="true">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-sm border border-gray-200 flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
-            <div className="p-4 border-b border-gray-200 flex-shrink-0">
-                <h2 className="text-lg font-semibold text-gray-800">Chat History</h2>
-            </div>
-            <div className="p-2 space-y-1 overflow-y-auto flex-1">
-                {sortedConversations.map(([id, messages]) => {
-                    const firstUserMessage = messages.find(m => m.sender === 'user');
-                    const title = firstUserMessage?.text || "New Chat";
-                    const isActive = id === currentConversationId;
-                    return (
-                        <div
-                            key={id}
-                            onClick={() => handleSelectConversation(id)}
-                            className={`flex items-center p-2.5 rounded-md cursor-pointer group transition-colors ${isActive ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
-                        >
-                            <Icon name="ChatBubbleLeftRightIcon" className={`w-5 h-5 mr-3 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
-                            <span className={`flex-1 font-medium truncate pr-2 ${isActive ? 'text-blue-800' : 'text-gray-800'}`} title={title}>{title}</span>
-                            <button
-                                onClick={(e) => handleDelete(e, id)}
-                                className="p-1.5 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-                                aria-label="Delete conversation"
-                                disabled={Object.keys(conversations).length <= 1}
-                            >
-                                <Icon name="TrashIcon" className="w-4 h-4" />
-                            </button>
-                        </div>
-                    );
-                })}
-            </div>
-            <div className="p-3 bg-gray-50/70 border-t border-gray-200 flex-shrink-0">
-                 <button onClick={handleNewChat} className="w-full py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-500 transition-colors">
-                    Start New Chat
-                </button>
-            </div>
+    <div 
+      className={`fixed inset-0 z-30 transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      onClick={onClose} 
+      role="dialog" 
+      aria-modal="true"
+      aria-hidden={!isOpen}
+    >
+      <div className="absolute inset-0 bg-black/40" />
+      <div 
+        className={`
+          absolute top-0 inset-x-0 bg-white shadow-xl 
+          border-b border-gray-200 
+          flex flex-col max-h-[calc(100vh-6rem)]
+          transform transition-all duration-300 ease-out
+          ${isOpen ? 'translate-y-0' : '-translate-y-full'}
+        `}
+        style={{ top: '4rem' }} // Positioned below the header
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="p-4 border-b border-gray-200 flex-shrink-0">
+          <h2 className="text-lg font-semibold text-gray-800">Chat History</h2>
         </div>
+        <div className="p-2 space-y-1 overflow-y-auto flex-1">
+          {sortedConversations.map(([id, messages]) => {
+            const firstUserMessage = messages.find(m => m.sender === 'user');
+            const title = firstUserMessage?.text || "New Chat";
+            const isActive = id === currentConversationId;
+            return (
+              <div
+                key={id}
+                onClick={() => handleSelectConversation(id)}
+                className={`flex items-center p-2.5 rounded-md cursor-pointer group transition-colors ${isActive ? 'bg-blue-100' : 'hover:bg-gray-100'}`}
+              >
+                <Icon name="ChatBubbleLeftIcon" className={`w-5 h-5 mr-3 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                <span className={`flex-1 font-medium truncate pr-2 ${isActive ? 'text-blue-800' : 'text-gray-800'}`} title={title}>{title}</span>
+                <button
+                  onClick={(e) => handleDelete(e, id)}
+                  className="p-1.5 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Delete conversation"
+                  disabled={Object.keys(conversations).length <= 1}
+                >
+                  <Icon name="TrashIcon" className="w-4 h-4" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        <div className="p-3 bg-gray-50/70 border-t border-gray-200 flex-shrink-0">
+          <button onClick={handleNewChat} className="w-full py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-500 transition-colors">
+            Start New Chat
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -109,7 +125,7 @@ const Header: React.FC<{ onHistoryClick: () => void; }> = ({ onHistoryClick }) =
   };
 
   return (
-    <header className="flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-white flex-shrink-0">
+    <header className="relative z-40 flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-white flex-shrink-0">
       {showBackButton ? (
         <button onClick={handleGoToMain} className="flex items-center gap-3 group" aria-label="Go to main screen">
           <Icon name="ArrowLeftIcon" className="w-6 h-6 text-gray-500 group-hover:text-gray-900" />
@@ -117,7 +133,11 @@ const Header: React.FC<{ onHistoryClick: () => void; }> = ({ onHistoryClick }) =
         </button>
       ) : (
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-gray-800">{title}</h1>
+          {title === 'Jain' && location.pathname === PANEL_ROUTES.CONVERSATION ? (
+            <NeuralAnimation />
+          ) : (
+            <h1 className="text-xl font-bold text-gray-800">{title}</h1>
+          )}
         </div>
       )}
       <div className="flex items-center gap-4">
@@ -144,7 +164,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   return (
     <div className="flex flex-col h-screen bg-gray-50 text-gray-800">
-      <Header onHistoryClick={() => setIsHistoryOpen(true)} />
+      <Header onHistoryClick={() => setIsHistoryOpen(prev => !prev)} />
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>

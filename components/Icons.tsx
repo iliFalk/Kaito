@@ -5,6 +5,11 @@ export const Icon = ({ name, className }: { name: string; className?: string }) 
     HomeIcon: (props) => (
       <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
     ),
+    ChatBubbleLeftIcon: (props) => (
+      <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+      </svg>
+    ),
     ChatBubbleLeftRightIcon: (props) => (
        <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193l-3.722.534A9.003 9.003 0 0 1 12 15.75a9.003 9.003 0 0 1-4.057 1.082l-3.722-.534A2.002 2.002 0 0 1 2.25 15v-4.286c0-.97.616-1.813 1.5-2.097m16.5 0-.229-.08a2.002 2.002 0 0 0-2.053.228l-.934.934V5.625a2.25 2.25 0 0 0-2.25-2.25h-9a2.25 2.25 0 0 0-2.25 2.25v3.432l-.934-.934a2.002 2.002 0 0 0-2.053-.228l-.229.081m16.5 0c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193l-3.722.534A9.003 9.003 0 0 1 12 15.75a9.003 9.003 0 0 1-4.057 1.082l-3.722-.534A2.002 2.002 0 0 1 2.25 15v-4.286c0-.97.616-1.813 1.5-2.097" /></svg>
     ),
