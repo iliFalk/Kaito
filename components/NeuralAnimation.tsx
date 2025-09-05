@@ -104,7 +104,7 @@ const NeuralAnimation: React.FC<{ className?: string }> = ({ className }) => {
       // Apply soft circular mask
       ctx.globalCompositeOperation = 'destination-in';
       
-      const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.95, centerX, centerY, radius);
+      const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.85, centerX, centerY, radius);
       gradient.addColorStop(0, 'rgba(0,0,0,1)');
       gradient.addColorStop(1, 'rgba(0,0,0,0)');
 
