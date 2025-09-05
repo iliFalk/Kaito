@@ -8,6 +8,7 @@ import { generateChatStream } from '../services/geminiService';
 import { UserIcon, SparklesIcon, Icon } from '../components/Icons';
 import ScreenshotOverlay from '../components/ScreenshotOverlay';
 import { useAppContext } from '../context/AppContext';
+import NeuralAnimation from '../components/NeuralAnimation';
 
 // Basic markdown to HTML renderer
 const SimpleMarkdown: React.FC<{ content: string }> = React.memo(({ content }) => {
@@ -269,8 +270,9 @@ const Conversation: React.FC = () => {
             {isTakingScreenshot && <ScreenshotOverlay onCapture={handleScreenshotCapture} onClose={cancelScreenshot} />}
             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                 {messages.length === 0 && (
-                     <div className="text-left text-gray-800">
-                        <p>How can I assist you now?</p>
+                     <div className="flex flex-col items-center justify-center h-full text-center">
+                        <NeuralAnimation className="w-32 h-32" />
+                        <p className="mt-4 text-lg font-medium text-gray-600">How can I help you today?</p>
                     </div>
                 )}
                 {messages.map(message =>

@@ -8,7 +8,7 @@ interface Particle {
   radius: number;
 }
 
-const NeuralAnimation: React.FC = () => {
+const NeuralAnimation: React.FC<{ className?: string }> = ({ className }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -22,8 +22,9 @@ const NeuralAnimation: React.FC = () => {
 
     let animationFrameId: number;
     const particles: Particle[] = [];
-    const particleCount = 15;
-    const connectDistance = 50;
+    
+    let particleCount = 10; // Fewer particles
+    let connectDistance = 50;
 
     const resizeCanvas = () => {
       const dpr = window.devicePixelRatio || 1;
@@ -34,6 +35,13 @@ const NeuralAnimation: React.FC = () => {
       canvas.style.width = `${rect.width}px`;
       canvas.style.height = `${rect.height}px`;
       
+      const baseSize = 36; // Original size was w-9 -> 36px
+      if (rect.width > 0) {
+        const scale = rect.width / baseSize;
+        particleCount = Math.max(10, Math.round(10 * scale)); // Fewer particles
+        connectDistance = Math.min(50 * scale, 150);
+      }
+      
       particles.length = 0;
       const width = rect.width;
       const height = rect.height;
@@ -41,8 +49,8 @@ const NeuralAnimation: React.FC = () => {
         particles.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 0.2,
-          vy: (Math.random() - 0.5) * 0.2,
+          vx: (Math.random() - 0.5) * 0.6, // Increased speed
+          vy: (Math.random() - 0.5) * 0.6, // Increased speed
           radius: Math.random() * 1.0 + 0.5,
         });
       }
@@ -96,7 +104,7 @@ const NeuralAnimation: React.FC = () => {
       // Apply soft circular mask
       ctx.globalCompositeOperation = 'destination-in';
       
-      const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.9, centerX, centerY, radius);
+      const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.95, centerX, centerY, radius);
       gradient.addColorStop(0, 'rgba(0,0,0,1)');
       gradient.addColorStop(1, 'rgba(0,0,0,0)');
 
@@ -120,7 +128,7 @@ const NeuralAnimation: React.FC = () => {
   }, []);
 
   return (
-    <div ref={containerRef} className="w-9 h-9">
+    <div ref={containerRef} className={className ?? "w-9 h-9"}>
       <canvas ref={canvasRef} />
     </div>
   );
