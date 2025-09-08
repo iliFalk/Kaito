@@ -115,3 +115,149 @@ document.addEventListener('mousedown', (event) => {
         removeContextMenu();
     }
 }, true);
+
+// --- Screenshot Functionality ---
+
+function initiateScreenshotSelection() {
+    if (document.getElementById('ai-sidekick-screenshot-overlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'ai-sidekick-screenshot-overlay';
+    
+    const canvas = document.createElement('canvas');
+    canvas.id = 'ai-sidekick-screenshot-canvas';
+    
+    const selectionBox = document.createElement('div');
+    selectionBox.id = 'ai-sidekick-screenshot-selection';
+    
+    const instructions = document.createElement('div');
+    instructions.id = 'ai-sidekick-screenshot-instructions';
+    instructions.textContent = 'Click and drag to select an area, or press Esc to cancel';
+    
+    overlay.appendChild(canvas);
+    overlay.appendChild(selectionBox);
+    overlay.appendChild(instructions);
+    document.body.appendChild(overlay);
+
+    let streamRef = null;
+    let isSelecting = false;
+    let startPos = null;
+    const dpr = window.devicePixelRatio || 1;
+
+    const cleanup = () => {
+        if (streamRef) {
+            streamRef.getTracks().forEach(track => track.stop());
+            streamRef = null;
+        }
+        document.removeEventListener('keydown', handleKeyDown);
+        if (overlay.parentNode) {
+          overlay.remove();
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+            cleanup();
+        }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+
+    const handleMouseDown = (e) => {
+        e.preventDefault();
+        isSelecting = true;
+        startPos = { x: e.clientX, y: e.clientY };
+        selectionBox.style.left = `${e.clientX}px`;
+        selectionBox.style.top = `${e.clientY}px`;
+        selectionBox.style.width = '0px';
+        selectionBox.style.height = '0px';
+        selectionBox.style.display = 'block';
+    };
+
+    const handleMouseMove = (e) => {
+        if (!isSelecting || !startPos) return;
+        e.preventDefault();
+        const currentPos = { x: e.clientX, y: e.clientY };
+        const x = Math.min(startPos.x, currentPos.x);
+        const y = Math.min(startPos.y, currentPos.y);
+        const width = Math.abs(startPos.x - currentPos.x);
+        const height = Math.abs(startPos.y - currentPos.y);
+        selectionBox.style.left = `${x}px`;
+        selectionBox.style.top = `${y}px`;
+        selectionBox.style.width = `${width}px`;
+        selectionBox.style.height = `${height}px`;
+    };
+
+    const handleMouseUp = (e) => {
+        if (!isSelecting || !startPos) {
+            isSelecting = false;
+            return;
+        }
+        e.preventDefault();
+        isSelecting = false;
+
+        const endPos = { x: e.clientX, y: e.clientY };
+        const rect = {
+            x: Math.min(startPos.x, endPos.x) * dpr,
+            y: Math.min(startPos.y, endPos.y) * dpr,
+            w: Math.abs(startPos.x - endPos.x) * dpr,
+            h: Math.abs(startPos.y - endPos.y) * dpr,
+        };
+
+        if (rect.w < 10 || rect.h < 10) {
+            cleanup();
+            return;
+        }
+        
+        const cropCanvas = document.createElement('canvas');
+        cropCanvas.width = rect.w;
+        cropCanvas.height = rect.h;
+        const cropCtx = cropCanvas.getContext('2d');
+        
+        if(cropCtx) {
+            cropCtx.drawImage(
+                canvas,
+                rect.x, rect.y, rect.w, rect.h,
+                0, 0, rect.w, rect.h
+            );
+            const dataUrl = cropCanvas.toDataURL('image/png');
+            chrome.runtime.sendMessage({ type: 'screenshotTaken', dataUrl: dataUrl });
+        }
+        cleanup();
+    };
+    
+    overlay.addEventListener('mousedown', handleMouseDown);
+    overlay.addEventListener('mousemove', handleMouseMove);
+    overlay.addEventListener('mouseup', handleMouseUp);
+    
+    (async () => {
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: 'always' }, audio: false });
+            streamRef = stream;
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                video.play();
+                const track = stream.getVideoTracks()[0];
+                const { width, height } = track.getSettings();
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                }
+                stream.getTracks().forEach(track => track.stop());
+                streamRef = null;
+            };
+        } catch (err) {
+            console.error("AI Sidekick: Screen capture failed or cancelled.", err);
+            cleanup();
+        }
+    })();
+}
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type === 'startScreenshotSelection') {
+        initiateScreenshotSelection();
+    }
+});

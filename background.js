@@ -38,5 +38,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ shortcuts });
     });
     return true; // Indicates that the response is sent asynchronously.
+  } else if (request.type === 'initiateScreenshot') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0] && tabs[0].id) {
+        chrome.tabs.sendMessage(tabs[0].id, { type: 'startScreenshotSelection' });
+      }
+    });
+  } else if (request.type === 'screenshotTaken') {
+    chrome.runtime.sendMessage({ type: 'screenshotReady', dataUrl: request.dataUrl });
   }
 });

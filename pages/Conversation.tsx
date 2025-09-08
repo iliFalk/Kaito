@@ -6,7 +6,6 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { DEFAULT_MODELS, PANEL_ROUTES, DEFAULT_SHORTCUTS } from '../constants';
 import { generateChatStream } from '../services/geminiService';
 import { UserIcon, SparklesIcon, Icon } from '../components/Icons';
-import ScreenshotOverlay from '../components/ScreenshotOverlay';
 import { useAppContext } from '../context/AppContext';
 import NeuralAnimation from '../components/NeuralAnimation';
 
@@ -89,7 +88,6 @@ const Conversation: React.FC = () => {
     const [attachedFile, setAttachedFile] = useState<File | null>(null);
     const [filePreview, setFilePreview] = useState<string | null>(null);
     const [quotedText, setQuotedText] = useState('');
-    const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
     const [pageContext, setPageContext] = useState<{ title: string; url: string } | null>(null);
 
     const [models] = useLocalStorage<AIModel[]>('ai_models', DEFAULT_MODELS);
@@ -157,24 +155,40 @@ const Conversation: React.FC = () => {
         if(fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    const startScreenshot = useCallback(() => {
-        setIsTakingScreenshot(true);
-    }, []);
-
-    const handleScreenshotCapture = useCallback((file: File) => {
-        if (file) {
-            setAttachedFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFilePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+    const startScreenshot = () => {
+        const chrome = (window as any).chrome;
+        if (chrome && chrome.runtime) {
+            chrome.runtime.sendMessage({ type: 'initiateScreenshot' });
+        } else {
+            console.warn("Screenshot feature only available in extension environment.");
         }
-        setIsTakingScreenshot(false);
-    }, []);
+    };
 
-    const cancelScreenshot = useCallback(() => {
-        setIsTakingScreenshot(false);
+    useEffect(() => {
+        const chrome = (window as any).chrome;
+        if (!chrome || !chrome.runtime) return;
+
+        const handleMessage = (request: any) => {
+            if (request.type === 'screenshotReady' && request.dataUrl) {
+                const dataUrlToFile = async (dataUrl: string, fileName: string): Promise<File> => {
+                    const res = await fetch(dataUrl);
+                    const blob = await res.blob();
+                    return new File([blob], fileName, { type: blob.type });
+                };
+
+                dataUrlToFile(request.dataUrl, `screenshot-${Date.now()}.png`).then(file => {
+                    setAttachedFile(file);
+                    setFilePreview(request.dataUrl);
+                });
+            }
+        };
+
+        chrome.runtime.onMessage.addListener(handleMessage);
+        return () => {
+            if (chrome.runtime && chrome.runtime.onMessage) {
+                chrome.runtime.onMessage.removeListener(handleMessage);
+            }
+        };
     }, []);
 
     const handlePasteContext = () => {
@@ -279,7 +293,6 @@ const Conversation: React.FC = () => {
 
     return (
         <div className="flex flex-col h-full bg-gray-50 text-gray-800">
-            {isTakingScreenshot && <ScreenshotOverlay onCapture={handleScreenshotCapture} onClose={cancelScreenshot} />}
             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                 {messages.length === 0 && (
                      <div className="flex flex-col items-center justify-center h-full text-center">
