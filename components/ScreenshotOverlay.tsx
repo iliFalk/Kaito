@@ -30,7 +30,6 @@ const ScreenshotOverlay: React.FC<ScreenshotOverlayProps> = ({ onCapture, onClos
 
     const startCapture = async () => {
       try {
-        // Fix: The 'cursor' property for getDisplayMedia is not in some TS types. Cast to 'any' and use a valid value.
         const stream = await navigator.mediaDevices.getDisplayMedia({
           video: { cursor: 'always' } as any,
           audio: false,

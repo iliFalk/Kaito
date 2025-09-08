@@ -8,7 +8,9 @@ const ModelModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
     onSave: (model: Omit<AIModel, 'id' | 'isDefault'>) => void;
-}> = ({ isOpen, onClose, onSave }) => {
+    model?: AIModel | null;
+    existingModels: AIModel[];
+}> = ({ isOpen, onClose, onSave, model: editingModel, existingModels }) => {
     const [name, setName] = useState('');
     const [apiType, setApiType] = useState('OpenAI / OpenAI Compatible APIs / Ollama');
     const [apiKey, setApiKey] = useState('');
@@ -19,12 +21,31 @@ const ModelModal: React.FC<{
     const [contextWindow, setContextWindow] = useState('8000');
     const [temperature, setTemperature] = useState('0.7');
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const isEditing = !!editingModel;
+
+    React.useEffect(() => {
+        if (isOpen) {
+            setName(editingModel?.name || '');
+            setApiType(editingModel?.apiType || 'OpenAI / OpenAI Compatible APIs / Ollama');
+            setApiKey(editingModel?.apiKey || '');
+            setModel(editingModel?.model || '');
+            setApiBaseUrl(editingModel?.apiBaseUrl || '');
+            setSupportImage(editingModel?.supportImage ? 'Yes' : 'No');
+            setContextWindow(String(editingModel?.contextWindow || '8000'));
+            setTemperature(String(editingModel?.temperature || '0.7'));
+            setErrors({});
+        }
+    }, [isOpen, editingModel]);
 
     if (!isOpen) return null;
 
     const validate = () => {
         const newErrors: { [key: string]: string } = {};
-        if (!name.trim()) newErrors.name = 'Name is required.';
+        if (!name.trim()) {
+            newErrors.name = 'Name is required.';
+        } else if (existingModels.some(m => m.name.trim().toLowerCase() === name.trim().toLowerCase() && m.id !== editingModel?.id)) {
+            newErrors.name = 'A model with this name already exists.';
+        }
         if (!apiKey.trim()) newErrors.apiKey = 'API Key is required.';
         if (!model.trim()) newErrors.model = 'Model is required.';
         if (!apiBaseUrl.trim()) newErrors.apiBaseUrl = 'API Base URL is required.';
@@ -60,7 +81,7 @@ const ModelModal: React.FC<{
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50 backdrop-blur-sm" aria-modal="true" role="dialog">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-lg border border-gray-200 flex flex-col max-h-full">
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
-                    <h2 className="text-lg font-semibold text-gray-800">Add Model Configuration</h2>
+                    <h2 className="text-lg font-semibold text-gray-800">{isEditing ? 'Edit Model' : 'Add Model Configuration'}</h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
@@ -122,22 +143,31 @@ const ModelModal: React.FC<{
 const Models: React.FC = () => {
     const [models, setModels] = useLocalStorage<AIModel[]>('ai_models', DEFAULT_MODELS);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingModel, setEditingModel] = useState<AIModel | null>(null);
 
     const handleSaveModel = (modelData: Omit<AIModel, 'id' | 'isDefault'>) => {
-        const newModel: AIModel = {
-            id: Date.now().toString(),
-            isDefault: false,
-            ...modelData,
-        };
-        if (!models.some(m => m.name.toLowerCase() === newModel.name.toLowerCase())) {
-            setModels([...models, newModel]);
+        if (editingModel) {
+            setModels(prev => prev.map(m => (m.id === editingModel.id ? { ...m, ...modelData, isDefault: false } : m)));
+        } else {
+            const newModel: AIModel = {
+                id: Date.now().toString(),
+                isDefault: false,
+                ...modelData,
+            };
+            setModels(prev => [...prev, newModel]);
         }
+        setEditingModel(null);
     };
 
     const handleDelete = (id: string) => {
         if (window.confirm("Are you sure you want to delete this model?")) {
-            setModels(models.filter(s => s.id !== id));
+            setModels(prev => prev.filter(model => model.id !== id));
         }
+    };
+
+    const openModal = (model: AIModel | null) => {
+        setEditingModel(model);
+        setIsModalOpen(true);
     };
 
     return (
@@ -154,17 +184,27 @@ const Models: React.FC = () => {
                         <Icon name="CpuChipIcon" className="w-6 h-6 text-blue-500 mr-4" />
                         <span className="flex-1 font-medium">{model.name}</span>
                         {model.isDefault ? (
-                            <span className="text-xs text-gray-500 mr-2">Default</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs bg-gray-200 text-gray-600 font-semibold px-2 py-1 rounded-full">Default</span>
+                                <button onClick={() => openModal(model)} className="p-1 hover:bg-gray-100 rounded-full" aria-label="Edit model">
+                                    <Icon name="PencilIcon" className="w-4 h-4 text-gray-500" />
+                                </button>
+                            </div>
                         ) : (
-                             <button onClick={() => handleDelete(model.id)} className="p-1 hover:bg-gray-100 rounded-full">
-                                <Icon name="TrashIcon" className="w-4 h-4 text-red-500" />
-                            </button>
+                             <div className="flex items-center gap-2">
+                                <button onClick={() => openModal(model)} className="p-1 hover:bg-gray-100 rounded-full" aria-label="Edit model">
+                                    <Icon name="PencilIcon" className="w-4 h-4 text-gray-500" />
+                                </button>
+                                <button onClick={() => handleDelete(model.id)} className="p-1 hover:bg-gray-100 rounded-full" aria-label="Delete model">
+                                    <Icon name="TrashIcon" className="w-4 h-4 text-red-500" />
+                                </button>
+                            </div>
                         )}
                     </div>
                 ))}
             </div>
 
-            <button onClick={() => setIsModalOpen(true)} className="mt-6 w-full py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-500 transition-colors">
+            <button onClick={() => openModal(null)} className="mt-6 w-full py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-500 transition-colors">
                 Add New Model
             </button>
 
@@ -172,6 +212,8 @@ const Models: React.FC = () => {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSave={handleSaveModel}
+                model={editingModel}
+                existingModels={models}
             />
         </div>
     );

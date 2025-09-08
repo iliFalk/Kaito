@@ -1,120 +1,127 @@
-let contextMenu = null;
+let shortcutToolbar = null;
 
 const ICONS = {
     DocumentTextIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>`,
     LanguageIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802" /></svg>`,
     CheckCircleIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`,
     QuestionMarkCircleIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" /></svg>`,
-    Cog6ToothIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L20.66 7V17L12 22L3.34 17V7L12 2Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 15a3 3 0 100-6 3 3 0 000 6Z" /></svg>`,
     PencilIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`,
-    SparklesIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>`,
+    ChatBubbleLeftRightIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193l-3.722.534A9.003 9.003 0 0 1 12 15.75a9.003 9.003 0 0 1-4.057 1.082l-3.722-.534A2.002 2.002 0 0 1 2.25 15v-4.286c0-.97.616-1.813 1.5-2.097m16.5 0-.229-.08a2.002 2.002 0 0 0-2.053.228l-.934.934V5.625a2.25 2.25 0 0 0-2.25-2.25h-9a2.25 2.25 0 0 0-2.25 2.25v3.432l-.934-.934a2.002 2.002 0 0 0-2.053-.228l-.229.081m16.5 0c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193l-3.722.534A9.003 9.003 0 0 1 12 15.75a9.003 9.003 0 0 1-4.057 1.082l-3.722-.534A2.002 2.002 0 0 1 2.25 15v-4.286c0-.97.616-1.813 1.5-2.097" /></svg>`,
+    EllipsisHorizontalIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>`,
 };
 
-function removeContextMenu() {
-    if (contextMenu) {
-        contextMenu.remove();
-        contextMenu = null;
+function removeShortcutToolbar() {
+    if (shortcutToolbar) {
+        shortcutToolbar.remove();
+        shortcutToolbar = null;
     }
 }
 
-async function showContextMenu(x, y, text) {
-    removeContextMenu();
+async function showShortcutToolbar(range, text) {
+    removeShortcutToolbar();
 
-    contextMenu = document.createElement('div');
-    contextMenu.id = 'ai-sidekick-context-menu';
-    document.body.appendChild(contextMenu);
+    shortcutToolbar = document.createElement('div');
+    shortcutToolbar.id = 'ai-sidekick-shortcut-toolbar';
+    document.body.appendChild(shortcutToolbar);
 
     try {
         const { shortcuts } = await chrome.runtime.sendMessage({ type: 'getShortcuts' });
 
+        // "Quote" button
+        const quoteButton = document.createElement('button');
+        quoteButton.innerHTML = ICONS.ChatBubbleLeftRightIcon;
+        quoteButton.dataset.tooltip = 'Quote Text';
+        quoteButton.onclick = (e) => {
+            e.stopPropagation();
+            chrome.runtime.sendMessage({ type: 'executeShortcut', shortcut: { id: 'quote', title: 'Quote' }, selectedText: text });
+            removeShortcutToolbar();
+        };
+        shortcutToolbar.appendChild(quoteButton);
+
         if (shortcuts && shortcuts.length > 0) {
-            const ul = document.createElement('ul');
-            shortcuts.slice(0, 5).forEach(shortcut => {
-                const li = document.createElement('li');
+            const separator = document.createElement('div');
+            separator.className = 'separator';
+            shortcutToolbar.appendChild(separator);
+
+            // Shortcut buttons
+            shortcuts.slice(0, 4).forEach(shortcut => {
                 const button = document.createElement('button');
-                button.innerHTML = `${ICONS[shortcut.icon] || ''}<span class="title">${shortcut.title}</span>`;
+                button.innerHTML = ICONS[shortcut.icon] || '';
+                button.dataset.tooltip = shortcut.title;
                 button.onclick = (e) => {
                     e.stopPropagation();
                     chrome.runtime.sendMessage({ type: 'executeShortcut', shortcut, selectedText: text });
-                    removeContextMenu();
+                    removeShortcutToolbar();
                 };
-                li.appendChild(button);
-                ul.appendChild(li);
+                shortcutToolbar.appendChild(button);
             });
-            contextMenu.appendChild(ul);
         }
-
-        const separator = document.createElement('div');
-        separator.className = 'separator';
-        contextMenu.appendChild(separator);
-
-        const settingsButton = document.createElement('button');
-        settingsButton.className = 'settings-button';
-        settingsButton.innerHTML = `${ICONS.Cog6ToothIcon}<span>Manage Shortcuts...</span>`;
-        settingsButton.onclick = (e) => {
+        
+        // "More Actions" button for settings
+        const moreButton = document.createElement('button');
+        moreButton.innerHTML = ICONS.EllipsisHorizontalIcon;
+        moreButton.dataset.tooltip = 'Manage Shortcuts...';
+        moreButton.onclick = (e) => {
             e.stopPropagation();
             chrome.runtime.sendMessage({ type: 'executeShortcut', shortcut: { id: 'settings' }, selectedText: '' });
-            removeContextMenu();
+            removeShortcutToolbar();
         };
-        contextMenu.appendChild(settingsButton);
+        shortcutToolbar.appendChild(moreButton);
 
-        // Allow the browser to render the menu and calculate its dimensions
-        await new Promise(requestAnimationFrame);
+        const rect = range.getBoundingClientRect();
+        const toolbarRect = shortcutToolbar.getBoundingClientRect();
 
-        const { innerWidth, innerHeight } = window;
-        const { offsetWidth, offsetHeight } = contextMenu;
+        let top = window.scrollY + rect.top - toolbarRect.height - 8;
+        let left = window.scrollX + rect.left + (rect.width / 2) - (toolbarRect.width / 2);
 
-        let top = y + 5;
-        let left = x + 5;
-
-        // Boundary checks to ensure the menu stays within the viewport.
-        // Since the menu has `position: fixed`, coordinates are relative to the viewport.
-        if (left + offsetWidth > innerWidth - 10) {
-            left = innerWidth - offsetWidth - 10;
+        // Boundary checks
+        if (top < window.scrollY + 10) {
+            top = window.scrollY + rect.bottom + 8;
         }
-        if (top + offsetHeight > innerHeight - 10) {
-            top = innerHeight - offsetHeight - 10;
+        if (left < window.scrollX + 10) {
+            left = window.scrollX + 10;
         }
-        if (left < 10) {
-            left = 10;
-        }
-        if (top < 10) {
-            top = 10;
+        if (left + toolbarRect.width > window.scrollX + window.innerWidth - 10) {
+            left = window.scrollX + window.innerWidth - toolbarRect.width - 10;
         }
 
-        contextMenu.style.top = `${top}px`;
-        contextMenu.style.left = `${left}px`;
+        shortcutToolbar.style.top = `${top}px`;
+        shortcutToolbar.style.left = `${left}px`;
+        shortcutToolbar.style.opacity = '1';
+
     } catch (error) {
-        console.error("AI Sidekick: Could not create context menu.", error);
-        removeContextMenu();
+        console.error("AI Sidekick: Could not create shortcut toolbar.", error);
+        removeShortcutToolbar();
     }
 }
 
 document.addEventListener('mouseup', (event) => {
-    if (event.target.closest && event.target.closest('#ai-sidekick-context-menu')) {
+    if (event.target.closest && event.target.closest('#ai-sidekick-shortcut-toolbar')) {
         return;
     }
     
     const selection = window.getSelection();
     const text = selection.toString().trim();
 
-    if (text) {
+    if (text && selection.rangeCount > 0) {
         const activeEl = document.activeElement;
         if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
-            removeContextMenu();
+            removeShortcutToolbar();
             return;
         }
-        showContextMenu(event.clientX, event.clientY, text);
+        const range = selection.getRangeAt(0);
+        showShortcutToolbar(range, text);
     } else {
-        removeContextMenu();
+        removeShortcutToolbar();
     }
 }, true);
 
 document.addEventListener('mousedown', (event) => {
-    if (contextMenu && !contextMenu.contains(event.target)) {
-        removeContextMenu();
+    if (shortcutToolbar && !shortcutToolbar.contains(event.target)) {
+        removeShortcutToolbar();
     }
 }, true);
+
 
 // --- Screenshot Functionality ---
 

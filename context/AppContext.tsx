@@ -21,12 +21,16 @@ interface AppContextType {
   pendingShortcutAction: { shortcut: Shortcut; selectedText: string } | null;
   clearPendingShortcutAction: () => void;
 
-  // FIX: Add missing properties for context menu state and actions.
+  // Quoted Text State for content script
+  pendingQuotedText: string | null;
+  setPendingQuotedText: (text: string) => void;
+  clearPendingQuotedText: () => void;
+  
   isContextMenuVisible: boolean;
   contextMenuPosition: { top: number; left: number };
   selectedText: string;
   hideContextMenu: () => void;
-  showContextMenu: (top: number, left: number, text: string) => void;
+  showContextMenu: (position: { top: number; left: number }, text: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -38,21 +42,14 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   
   // Shortcut Action State
   const [pendingShortcutAction, setPendingShortcutAction] = useState<{ shortcut: Shortcut; selectedText: string } | null>(null);
+  
+  // Quoted Text State
+  const [pendingQuotedText, setPendingQuotedTextState] = useState<string | null>(null);
 
   // Context Menu State
   const [isContextMenuVisible, setIsContextMenuVisible] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState('');
-
-  const showContextMenu = useCallback((top: number, left: number, text: string) => {
-    setContextMenuPosition({ top, left });
-    setSelectedText(text);
-    setIsContextMenuVisible(true);
-  }, []);
-
-  const hideContextMenu = useCallback(() => {
-    setIsContextMenuVisible(false);
-  }, []);
 
   const newChat = () => {
     const newId = Date.now().toString();
@@ -137,6 +134,24 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setPendingShortcutAction(null);
   }, []);
 
+  const setPendingQuotedText = useCallback((text: string) => {
+    setPendingQuotedTextState(text);
+  }, []);
+
+  const clearPendingQuotedText = useCallback(() => {
+    setPendingQuotedTextState(null);
+  }, []);
+
+  const showContextMenu = useCallback((position: { top: number; left: number }, text: string) => {
+    setIsContextMenuVisible(true);
+    setContextMenuPosition(position);
+    setSelectedText(text);
+  }, []);
+
+  const hideContextMenu = useCallback(() => {
+    setIsContextMenuVisible(false);
+  }, []);
+
   const value = useMemo(() => ({
     searchText,
     setSearchText,
@@ -151,12 +166,15 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     startConversationWithShortcut,
     pendingShortcutAction,
     clearPendingShortcutAction,
+    pendingQuotedText,
+    setPendingQuotedText,
+    clearPendingQuotedText,
     isContextMenuVisible,
     contextMenuPosition,
     selectedText,
-    showContextMenu,
     hideContextMenu,
-  }), [searchText, conversations, currentConversationId, newChat, selectConversation, deleteConversation, addMessage, updateStreamingMessage, getConversationHistory, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, isContextMenuVisible, contextMenuPosition, selectedText, showContextMenu, hideContextMenu]);
+    showContextMenu,
+  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, isContextMenuVisible, contextMenuPosition, selectedText, hideContextMenu, showContextMenu]);
 
   return (
     <AppContext.Provider value={value}>

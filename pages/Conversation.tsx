@@ -81,6 +81,8 @@ const Conversation: React.FC = () => {
         newChat,
         pendingShortcutAction,
         clearPendingShortcutAction,
+        pendingQuotedText,
+        clearPendingQuotedText,
     } = useAppContext();
 
     const [userInput, setUserInput] = useState('');
@@ -267,6 +269,14 @@ const Conversation: React.FC = () => {
             clearPendingShortcutAction();
         }
     }, [pendingShortcutAction, clearPendingShortcutAction, handleSend]);
+
+    useEffect(() => {
+        if (pendingQuotedText) {
+            setQuotedText(pendingQuotedText);
+            textareaRef.current?.focus();
+            clearPendingQuotedText();
+        }
+    }, [pendingQuotedText, clearPendingQuotedText]);
     
     const handleFileAction = (prompt: string) => {
         if (!attachedFile) return;
@@ -366,6 +376,18 @@ const Conversation: React.FC = () => {
                             </div>
                             <hr className="border-gray-200"/>
                         </div>
+                    ) : quotedText ? (
+                        <div className="bg-gray-100/80 rounded-lg p-2.5 mb-2">
+                            <div className="flex items-start">
+                                <Icon name="ChatBubbleLeftRightIcon" className="w-5 h-5 text-gray-500 mr-2.5 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-gray-600 italic truncate">"{quotedText}"</p>
+                                </div>
+                                <button onClick={() => setQuotedText('')} className="ml-2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-200 flex-shrink-0">
+                                    <Icon name="XMarkIcon" className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
                     ) : (
                         <div className="flex items-center justify-between mb-2 px-1">
                             <div className="relative" ref={modelDropdownRef}>
@@ -404,7 +426,7 @@ const Conversation: React.FC = () => {
                         </div>
                     )}
 
-                    <div className={`flex items-end gap-2 ${!attachedFile && !pageContext ? 'border-t border-gray-200 pt-2' : ''}`}>
+                    <div className={`flex items-end gap-2 ${!attachedFile && !pageContext && !quotedText ? 'border-t border-gray-200 pt-2' : ''}`}>
                         <textarea
                             ref={textareaRef}
                             value={userInput}
@@ -419,7 +441,7 @@ const Conversation: React.FC = () => {
                             <div className="flex items-center bg-white rounded-xl shadow-sm border border-gray-200/80 overflow-hidden">
                                 <button
                                     onClick={() => handleSend()}
-                                    disabled={isLoading || (!userInput.trim() && !attachedFile)}
+                                    disabled={isLoading || (!userInput.trim() && !attachedFile && !quotedText)}
                                     className="p-2.5 text-blue-600 disabled:text-gray-400 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
                                     aria-label="Send message">
                                     <Icon name="PaperAirplaneIcon" className="w-5 h-5" />

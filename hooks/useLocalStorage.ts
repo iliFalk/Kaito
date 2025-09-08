@@ -4,7 +4,6 @@ export const useLocalStorage = <T,>(key: string, initialValue: T): [T, React.Dis
   const [storedValue, setStoredValue] = useState<T>(initialValue);
 
   useEffect(() => {
-    // FIX: Cannot find name 'chrome'. Access via window to avoid TS errors.
     const chrome = (window as any).chrome;
     if (typeof chrome !== 'undefined' && chrome.storage) {
         chrome.storage.local.get(key, (result: { [key: string]: any }) => {
@@ -19,7 +18,6 @@ export const useLocalStorage = <T,>(key: string, initialValue: T): [T, React.Dis
             }
         });
 
-        // FIX: Cannot find namespace 'chrome'. Use a generic type for changes.
         const handleStorageChange = (changes: { [key: string]: any }, areaName: string) => {
             if (areaName === 'local' && changes[key]) {
                 setStoredValue(changes[key].newValue);
@@ -50,7 +48,6 @@ export const useLocalStorage = <T,>(key: string, initialValue: T): [T, React.Dis
     try {
         const valueToStore = value instanceof Function ? value(storedValue) : value;
         setStoredValue(valueToStore);
-        // FIX: Cannot find name 'chrome'. Access via window to avoid TS errors.
         const chrome = (window as any).chrome;
         if (typeof chrome !== 'undefined' && chrome.storage) {
             chrome.storage.local.set({ [key]: valueToStore }, () => {

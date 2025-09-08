@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Chat } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -35,6 +34,5 @@ export const generateChatStream = async (
   }
   messageParts.push({ text: prompt });
   
-  // FIX: The `sendMessageStream` method on a Chat object expects a `message` property in its payload, not `parts`.
   return chat.sendMessageStream({ message: messageParts });
 };

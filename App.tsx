@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Search from './pages/Search';
@@ -163,17 +162,19 @@ const Header: React.FC<{ onHistoryClick: () => void; }> = ({ onHistoryClick }) =
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const { startConversationWithShortcut } = useAppContext();
+  const { startConversationWithShortcut, setPendingQuotedText } = useAppContext();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // FIX: Cannot find name 'chrome'. Access via window to avoid TS errors.
     const chrome = (window as any).chrome;
     if (typeof chrome !== 'undefined' && chrome.runtime) {
         const handleMessage = (request: any) => {
             if (request.type === 'executeShortcut') {
                 if (request.shortcut.id === 'settings') {
                     navigate(PANEL_ROUTES.OPTIONS);
+                } else if (request.shortcut.id === 'quote') {
+                    setPendingQuotedText(request.selectedText);
+                    navigate(PANEL_ROUTES.CONVERSATION);
                 } else {
                     startConversationWithShortcut(request.shortcut, request.selectedText);
                     navigate(PANEL_ROUTES.CONVERSATION);
@@ -187,7 +188,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             chrome.runtime.onMessage.removeListener(handleMessage);
         };
     }
-  }, [startConversationWithShortcut, navigate]);
+  }, [startConversationWithShortcut, navigate, setPendingQuotedText]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 text-gray-800">
