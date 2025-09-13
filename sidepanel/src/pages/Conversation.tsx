@@ -316,8 +316,8 @@ const Conversation: React.FC = () => {
             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                 {messages.length === 0 && (
                      <div className="flex flex-col items-center justify-center h-full text-center">
-                        <NeuralAnimation className="w-32 h-32" />
-                        <p className="mt-4 text-lg font-medium text-gray-600">How can I help you today?</p>
+                        <NeuralAnimation className="w-40 h-40" />
+                        <p className="mt-6 text-2xl font-semibold text-gray-700">How can I help you today?</p>
                     </div>
                 )}
                 {messages.map(message =>
@@ -330,8 +330,8 @@ const Conversation: React.FC = () => {
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-3 bg-transparent">
-                <div className={`bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] p-2 border ${attachedFile || pageContext ? 'border-blue-300' : 'border-gray-200'}`}>
+            <div className="fixed bottom-6 left-0 right-0 p-3 bg-transparent pointer-events-none">
+                <div className={`mx-auto max-w-3xl bg-white rounded-3xl shadow-lg p-3 border ${attachedFile || pageContext ? 'border-blue-300' : 'border-gray-200'} pointer-events-auto`}>
                     {attachedFile ? (
                         <div>
                             <div className="flex items-center justify-between p-1">
