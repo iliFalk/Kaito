@@ -93,17 +93,12 @@ const Conversation = () => {
     const [quotedText, setQuotedText] = useState('');
     const [pageContext, setPageContext] = useState(null);
 
-    const [models] = useLocalStorage('ai_models', DEFAULT_MODELS);
-    const [selectedModel, setSelectedModel] = useLocalStorage('selected_ai_model', DEFAULT_MODELS[0]?.id || '');
     const [shortcuts] = useLocalStorage('shortcuts', DEFAULT_SHORTCUTS);
-    const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
     const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
     
-    const navigate = useNavigate();
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
     const textareaRef = useRef(null);
-    const modelDropdownRef = useRef(null);
     const actionsDropdownRef = useRef(null);
 
     const messages = currentConversationId ? conversations[currentConversationId] || [] : [];
@@ -129,9 +124,6 @@ const Conversation = () => {
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target)) {
-                setIsModelDropdownOpen(false);
-            }
             if (actionsDropdownRef.current && !actionsDropdownRef.current.contains(event.target)) {
                 setIsActionsDropdownOpen(false);
             }
@@ -172,7 +164,7 @@ const Conversation = () => {
         if (!chrome || !chrome.runtime) return;
 
         const handleMessage = (request) => {
-            if (request.type === 'screenshotReady' && request.dataUrl) {
+            if (request.type === 'screenshotTaken' && request.dataUrl) {
                 const dataUrlToFile = async (dataUrl, fileName) => {
                     const res = await fetch(dataUrl);
                     const blob = await res.blob();
@@ -238,14 +230,9 @@ const Conversation = () => {
         setQuotedText('');
         removeAttachment();
         setPageContext(null);
-        
-        const currentModelDetails = models.find(m => m.id === selectedModel);
-        if (!currentModelDetails?.apiKey && currentModelDetails?.id === 'gemini-2.5-flash') {
-            currentModelDetails.apiKey = process.env.API_KEY;
-        }
 
-        if (!currentModelDetails?.apiKey) {
-            const errorMessage = `API key for model '${currentModelDetails?.name || selectedModel}' is not configured. Please go to Settings > Manage AI Models to add it.`;
+        if (!process.env.API_KEY) {
+            const errorMessage = `API key is not configured. Please ensure the API_KEY environment variable is set.`;
             updateStreamingMessage(currentConversationId, aiMessageId, '', true, errorMessage);
             setIsLoading(false);
             return;
@@ -253,7 +240,8 @@ const Conversation = () => {
 
         try {
             const history = getConversationHistory(currentConversationId);
-            const stream = await generateChatStream(promptForApi, history, selectedModel, currentModelDetails.apiKey, fileToSend || undefined);
+            const modelName = DEFAULT_MODELS[0].model;
+            const stream = await generateChatStream(promptForApi, history, modelName, process.env.API_KEY, fileToSend || undefined);
             
             for await (const chunk of stream) {
                 const chunkText = chunk.text;
@@ -271,7 +259,7 @@ const Conversation = () => {
     }, [
         userInput, attachedFile, filePreview, quotedText, pageContext, 
         currentConversationId, addMessage, updateStreamingMessage, 
-        getConversationHistory, selectedModel, models
+        getConversationHistory
     ]);
 
     useEffect(() => {
@@ -398,26 +386,9 @@ const Conversation = () => {
                         )
                     ) : (
                         React.createElement('div', { className: "flex items-center justify-between mb-2 px-1" },
-                            React.createElement('div', { className: "relative", ref: modelDropdownRef },
-                                React.createElement('button', { onClick: () => setIsModelDropdownOpen(!isModelDropdownOpen), className: "flex items-center gap-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg px-3 py-1.5 hover:bg-gray-200", 'aria-label': "Select AI Model" },
-                                    React.createElement(Icon, { name: "CpuChipIcon", className: "w-4 h-4" }),
-                                    React.createElement('span', { className: "max-w-[120px] truncate" }, models.find(m => m.id === selectedModel)?.name || selectedModel),
-                                    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 20 20", fill: "currentColor", className: "w-5 h-5" }, React.createElement('path', { fillRule: "evenodd", d: "M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z", clipRule: "evenodd" }))
-                                ),
-                                isModelDropdownOpen && (
-                                    React.createElement('div', { className: "absolute bottom-full mb-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10" },
-                                        React.createElement('ul', { className: "py-1 max-h-48 overflow-y-auto" },
-                                            models.map(model => (
-                                                React.createElement('li', { key: model.id },
-                                                    React.createElement('button', { onClick: () => { setSelectedModel(model.id); setIsModelDropdownOpen(false); }, className: "w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between" },
-                                                        React.createElement('span', { className: "truncate" }, model.name),
-                                                        selectedModel === model.id && React.createElement(Icon, { name: "CheckCircleIcon", className: "w-4 h-4 text-blue-600" })
-                                                    )
-                                                )
-                                            ))
-                                        )
-                                    )
-                                )
+                            React.createElement('div', { className: "flex items-center gap-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg px-3 py-1.5" },
+                                React.createElement(Icon, { name: "CpuChipIcon", className: "w-4 h-4" }),
+                                React.createElement('span', null, DEFAULT_MODELS[0].name)
                             ),
                             React.createElement('div', { className: "flex items-center text-gray-500" },
                                 React.createElement('input', { type: "file", ref: fileInputRef, onChange: handleFileChange, className: "hidden", accept: "image/*" }),

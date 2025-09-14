@@ -7,6 +7,9 @@
     "sidePanel",
     "storage"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": {
     "service_worker": "service_worker.js"
   },
@@ -39,6 +42,7 @@
   "side_panel": {
     "default_path": "sidepanel/index.html"
   },
+  "options_page": "index.html",
   "content_security_policy": {
     "extension_pages": "script-src 'self' https://cdn.tailwindcss.com https://aistudiocdn.com; object-src 'self';"
   }

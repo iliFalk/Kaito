@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { PANEL_ROUTES } from '../constants';
@@ -15,16 +16,6 @@ const Settings: React.FC = () => {
           <div>
             <p className="font-semibold">Quick Action Shortcuts</p>
             <p className="text-sm text-gray-500">Customize and reorder your one-click prompts.</p>
-          </div>
-        </NavLink>
-        <NavLink 
-          to={PANEL_ROUTES.MODELS} 
-          className="flex items-center w-full p-4 text-gray-700 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
-        >
-          <Icon name="CpuChipIcon" className="w-6 h-6 mr-4 text-gray-500" />
-          <div>
-            <p className="font-semibold">Manage AI Models</p>
-            <p className="text-sm text-gray-500">Add or remove AI models available for chat.</p>
           </div>
         </NavLink>
       </div>

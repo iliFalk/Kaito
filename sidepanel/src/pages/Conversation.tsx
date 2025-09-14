@@ -92,17 +92,12 @@ const Conversation: React.FC = () => {
     const [quotedText, setQuotedText] = useState('');
     const [pageContext, setPageContext] = useState<{ title: string; url: string } | null>(null);
 
-    const [models] = useLocalStorage<AIModel[]>('ai_models', DEFAULT_MODELS);
-    const [selectedModel, setSelectedModel] = useLocalStorage<string>('selected_ai_model', DEFAULT_MODELS[0]?.id || '');
     const [shortcuts] = useLocalStorage<Shortcut[]>('shortcuts', DEFAULT_SHORTCUTS);
-    const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
     const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
     
-    const navigate = useNavigate();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const modelDropdownRef = useRef<HTMLDivElement>(null);
     const actionsDropdownRef = useRef<HTMLDivElement>(null);
 
     const messages = currentConversationId ? conversations[currentConversationId] || [] : [];
@@ -128,9 +123,6 @@ const Conversation: React.FC = () => {
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target as Node)) {
-                setIsModelDropdownOpen(false);
-            }
             if (actionsDropdownRef.current && !actionsDropdownRef.current.contains(event.target as Node)) {
                 setIsActionsDropdownOpen(false);
             }
@@ -171,7 +163,7 @@ const Conversation: React.FC = () => {
         if (!chrome || !chrome.runtime) return;
 
         const handleMessage = (request: any) => {
-            if (request.type === 'screenshotReady' && request.dataUrl) {
+            if (request.type === 'screenshotTaken' && request.dataUrl) {
                 const dataUrlToFile = async (dataUrl: string, fileName: string): Promise<File> => {
                     const res = await fetch(dataUrl);
                     const blob = await res.blob();
@@ -237,7 +229,7 @@ const Conversation: React.FC = () => {
         setQuotedText('');
         removeAttachment();
         setPageContext(null);
-        
+
         if (!process.env.API_KEY) {
             const errorMessage = `API key is not configured. Please ensure the API_KEY environment variable is set.`;
             updateStreamingMessage(currentConversationId, aiMessageId, '', true, errorMessage);
@@ -247,7 +239,8 @@ const Conversation: React.FC = () => {
 
         try {
             const history = getConversationHistory(currentConversationId);
-            const stream = await generateChatStream(promptForApi, history, selectedModel, process.env.API_KEY, fileToSend || undefined);
+            const modelName = DEFAULT_MODELS[0].model;
+            const stream = await generateChatStream(promptForApi, history, modelName, process.env.API_KEY, fileToSend || undefined);
             
             let fullText = '';
             for await (const chunk of stream) {
@@ -267,7 +260,7 @@ const Conversation: React.FC = () => {
     }, [
         userInput, attachedFile, filePreview, quotedText, pageContext, 
         currentConversationId, addMessage, updateStreamingMessage, 
-        getConversationHistory, selectedModel
+        getConversationHistory
     ]);
 
     useEffect(() => {
@@ -399,26 +392,9 @@ const Conversation: React.FC = () => {
                         </div>
                     ) : (
                         <div className="flex items-center justify-between mb-2 px-1">
-                            <div className="relative" ref={modelDropdownRef}>
-                                <button onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)} className="flex items-center gap-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg px-3 py-1.5 hover:bg-gray-200" aria-label="Select AI Model">
+                            <div className="flex items-center gap-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg px-3 py-1.5">
                                     <Icon name="CpuChipIcon" className="w-4 h-4" />
-                                    <span className="max-w-[120px] truncate">{models.find(m => m.id === selectedModel)?.name || selectedModel}</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" /></svg>
-                                </button>
-                                {isModelDropdownOpen && (
-                                    <div className="absolute bottom-full mb-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                                        <ul className="py-1 max-h-48 overflow-y-auto">
-                                            {models.map(model => (
-                                                <li key={model.id}>
-                                                    <button onClick={() => { setSelectedModel(model.id); setIsModelDropdownOpen(false); }} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between">
-                                                        <span className="truncate">{model.name}</span>
-                                                        {selectedModel === model.id && <Icon name="CheckCircleIcon" className="w-4 h-4 text-blue-600"/>}
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
+                                    <span>{DEFAULT_MODELS[0].name}</span>
                             </div>
                             <div className="flex items-center text-gray-500">
                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />

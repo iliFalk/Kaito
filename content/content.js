@@ -264,7 +264,7 @@ function initiateScreenshotSelection() {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type === 'startScreenshotSelection') {
+    if (request.type === 'initiateScreenshot') {
         initiateScreenshotSelection();
     }
 });
