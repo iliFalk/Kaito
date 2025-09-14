@@ -4,11 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Sidekick</title>
-    <!-- For production builds we bundle all scripts and styles locally.
-         Do not include remote CDN scripts here (Chrome Web Store policy). -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.17.0",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.1.1/client",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.8.2"
+  }
+}
+</script>
   </head>
   <body class="bg-gray-50">
     <div id="root"></div>
-    <script type="module" src="./src/index.js"></script>
+    <script type="module" src="./src/index.tsx"></script>
   </body>
 </html>

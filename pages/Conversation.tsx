@@ -238,9 +238,8 @@ const Conversation: React.FC = () => {
         removeAttachment();
         setPageContext(null);
 
-        const currentModelDetails = models.find(m => m.id === selectedModel);
-        if (!currentModelDetails?.apiKey) {
-            const errorMessage = `API key for model '${currentModelDetails?.name || selectedModel}' is not configured. Please go to Settings > Manage AI Models to add it.`;
+        if (!process.env.API_KEY) {
+            const errorMessage = `API key is not configured. Please ensure the API_KEY environment variable is set.`;
             updateStreamingMessage(currentConversationId, aiMessageId, '', true, errorMessage);
             setIsLoading(false);
             return;
@@ -248,7 +247,7 @@ const Conversation: React.FC = () => {
 
         try {
             const history = getConversationHistory(currentConversationId);
-            const stream = await generateChatStream(promptForApi, history, selectedModel, currentModelDetails.apiKey, fileToSend || undefined);
+            const stream = await generateChatStream(promptForApi, history, selectedModel, process.env.API_KEY, fileToSend || undefined);
             
             let fullText = '';
             for await (const chunk of stream) {
@@ -268,7 +267,7 @@ const Conversation: React.FC = () => {
     }, [
         userInput, attachedFile, filePreview, quotedText, pageContext, 
         currentConversationId, addMessage, updateStreamingMessage, 
-        getConversationHistory, selectedModel, models
+        getConversationHistory, selectedModel
     ]);
 
     useEffect(() => {

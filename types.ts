@@ -36,9 +36,6 @@ export interface AIModel {
   name: string;
   model: string;
   isDefault?: boolean;
-  apiType?: string;
-  apiKey?: string;
-  apiBaseUrl?: string;
   supportImage?: boolean;
   contextWindow?: number;
   temperature?: number;
