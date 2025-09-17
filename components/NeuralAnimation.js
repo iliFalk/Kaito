@@ -23,14 +23,20 @@ const fragmentShader = `
     // Glow color (white)
     vec3 glowColor = vec3(1.0, 1.0, 1.0);
 
-    // Create a ring that is bright between the center and the edge.
-    // The smoothstep ranges are widened to create a softer, more blurred edge.
-    float ring = smoothstep(-0.1, 0.5, centerFactor) * (1.0 - smoothstep(0.4, 0.8, centerFactor));
+    // Calculate a rim lighting effect (Fresnel).
+    // The glow is strongest at the edges of the sphere, where the surface normal
+    // is perpendicular to the view direction.
+    float rimFactor = 1.0 - clamp(centerFactor, 0.0, 1.0);
     
-    // Soften the glow by reducing the power
-    float intensity = pow(ring, 1.5);
+    // The 'pow' function controls the tightness of the glow. A higher exponent
+    // creates a sharper, more defined rim. We use a value of 2.0 for a strong but soft glow.
+    float intensity = pow(rimFactor, 2.0);
 
-    vec3 finalColor = glowColor * intensity;
+    // Boost the intensity for a more pronounced "glowing" effect and add a
+    // very sharp, bright highlight right at the edge.
+    intensity = intensity * 1.5 + pow(rimFactor, 8.0);
+
+    vec3 finalColor = glowColor * clamp(intensity, 0.0, 1.0);
 
     gl_FragColor = vec4(finalColor, 1.0);
   }
@@ -48,7 +54,8 @@ const NeuralAnimation = ({ className }) => {
     const camera = new THREE.PerspectiveCamera(75, mount.clientWidth / mount.clientHeight, 0.1, 1000);
     camera.position.z = 5;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setClearColor(0x000000);
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     mount.appendChild(renderer.domElement);
@@ -86,7 +93,7 @@ const NeuralAnimation = ({ className }) => {
     particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
     const particleMaterial = new THREE.PointsMaterial({
-        color: 0x000000,
+        color: 0xffffff,
         size: 0.05,
         sizeAttenuation: true,
         transparent: true,
