@@ -109,8 +109,8 @@ const fragmentShader = `
     noise = (noise + 1.0) * 0.5; // map to 0-1 range
 
     // Color palette
-    vec3 color1 = vec3(1.0, 0.0, 0.5); // Magenta
-    vec3 color2 = vec3(0.3, 0.0, 0.5); // Dark Purple
+    vec3 color1 = vec3(0.9, 0.9, 0.9); // White
+    vec3 color2 = vec3(0.1, 0.1, 0.1); // Black
     vec3 baseColor = mix(color1, color2, noise);
 
     // Fresnel effect for rim lighting
@@ -118,7 +118,7 @@ const fragmentShader = `
     float fresnel = 1.0 - dot(vNormal, viewDirection);
     fresnel = pow(fresnel, 2.5);
     
-    vec3 rimColor = vec3(1.0, 0.2, 0.7);
+    vec3 rimColor = vec3(1.0, 1.0, 1.0); // White
     
     vec3 finalColor = baseColor + rimColor * fresnel;
 
@@ -179,12 +179,12 @@ const NeuralAnimation: React.FC<{ className?: string }> = ({ className }) => {
     particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
     const particleMaterial = new THREE.PointsMaterial({
-        color: 0x00aaff,
+        color: 0x000000,
         size: 0.05,
         sizeAttenuation: true,
         transparent: true,
         opacity: 0.8,
-        blending: THREE.AdditiveBlending,
+        blending: THREE.NormalBlending,
     });
 
     const particles = new THREE.Points(particleGeometry, particleMaterial);
