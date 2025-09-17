@@ -36,7 +36,7 @@ const Greeting: React.FC = () => {
   const currentGuide = guideList[step];
 
   return (
-    <div className="h-screen w-full bg-gray-900 flex flex-col items-center justify-center p-4 sm:p-8 text-white font-sans overflow-hidden">
+    <div className="h-screen w-full bg-[#1a1a1a] flex flex-col items-center justify-center p-4 sm:p-8 text-white font-sans overflow-hidden">
       <div className="text-center mb-8">
         <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
           Welcome to AI Sidekick
@@ -44,8 +44,8 @@ const Greeting: React.FC = () => {
         <p className="text-gray-400 mt-2 text-lg">Your all-in-one AI work assistant.</p>
       </div>
 
-      <div className="w-full max-w-lg bg-gray-800/50 rounded-2xl shadow-2xl p-6 border border-gray-700 backdrop-blur-lg">
-        <div className="aspect-video w-full rounded-lg overflow-hidden mb-4 border border-gray-600">
+      <div className="w-full max-w-lg bg-[#3c3c3c]/50 rounded-2xl shadow-2xl p-6 border border-[#5a5a5a] backdrop-blur-lg">
+        <div className="aspect-video w-full rounded-lg overflow-hidden mb-4 border border-[#7a7a7a]">
           <video
             key={currentGuide.video}
             className="w-full h-full object-cover"
@@ -64,7 +64,7 @@ const Greeting: React.FC = () => {
             <div
               key={index}
               className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                step === index ? 'bg-blue-500 scale-125' : 'bg-gray-600'
+                step === index ? 'bg-blue-500 scale-125' : 'bg-[#7a7a7a]'
               }`}
             />
           ))}

@@ -14,103 +14,119 @@ const NeuralAnimation = ({ className }) => {
     if (!ctx) return;
 
     let animationFrameId;
-    const particles = [];
-    const particleCount = 30;
-    let time = Math.random() * 100;
-
+    let time = 0;
+    
     let width = 0;
     let height = 0;
-    let centerX = 0;
-    let centerY = 0;
-    let sphereRadius = 0;
-
-    const shades = ['65, 105, 225', '100, 149, 237', '173, 216, 230', '240, 248, 255'];
-
-    const createParticle = () => {
-      const angle = Math.random() * Math.PI * 2;
-      const dist = Math.random() * sphereRadius * 0.9;
-      
-      return {
-        x: centerX + Math.cos(angle) * dist,
-        y: centerY + Math.sin(angle) * dist,
-        radius: Math.random() * sphereRadius * 0.6 + sphereRadius * 0.2,
-        color: shades[Math.floor(Math.random() * shades.length)],
-        life: 0,
-        maxLife: Math.random() * 200 + 150,
-        speed: Math.random() * 0.2 + 0.05,
-        driftX: (Math.random() - 0.5) * 0.1,
-        driftY: (Math.random() - 0.5) * 0.1,
-      };
-    };
 
     const resizeCanvas = () => {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = container.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
-
-      width = rect.width;
-      height = rect.height;
-      centerX = width / 2;
-      centerY = height / 2;
-      sphereRadius = Math.min(width, height) / 2;
-      
-      particles.length = 0;
-      for (let i = 0; i < particleCount; i++) {
-        const p = createParticle();
-        p.life = Math.random() * p.maxLife;
-        particles.push(p);
-      }
+        const dpr = window.devicePixelRatio || 1;
+        const rect = container.getBoundingClientRect();
+        width = rect.width;
+        height = rect.height;
+        if (width > 0 && height > 0) {
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+        }
     };
 
     resizeCanvas();
-
+    
     const draw = () => {
-      time += 0.005;
+      time += 0.02;
 
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, width, height);
+      if (width === 0 || height === 0) {
+        animationFrameId = requestAnimationFrame(draw);
+        return;
+      }
+      
+      const dpr = window.devicePixelRatio || 1;
 
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Scale for DPR
       ctx.save();
+      ctx.scale(dpr, dpr);
+
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const sphereRadius = Math.min(width, height) / 2 * 0.98;
+
+      // --- Glass Sphere and Clipping ---
       ctx.beginPath();
       ctx.arc(centerX, centerY, sphereRadius, 0, Math.PI * 2);
+      ctx.save(); // Save before clipping
       ctx.clip();
-      
-      ctx.filter = `blur(${sphereRadius * 0.15}px) contrast(20)`;
-      
-      ctx.fillStyle = '#f0f8ff';
+
+      // Fill the background of the sphere
+      ctx.fillStyle = '#2b2b2b';
       ctx.fillRect(0, 0, width, height);
 
-      particles.forEach((p, index) => {
-        const angle = Math.sin(p.x * 0.01 + time) + Math.cos(p.y * 0.01 + time);
-        p.x += Math.cos(angle) * p.speed + p.driftX;
-        p.y += Math.sin(angle) * p.speed + p.driftY;
-        
-        p.life++;
-        
-        const distFromCenter = Math.sqrt(Math.pow(p.x - centerX, 2) + Math.pow(p.y - centerY, 2));
+      // --- Water Drawing ---
+      ctx.save(); // Save before rotating
 
-        if (p.life > p.maxLife || distFromCenter > sphereRadius * 1.5) {
-            particles[index] = createParticle();
-        }
-        
-        ctx.beginPath();
-        const opacity = Math.sin((p.life / p.maxLife) * Math.PI);
-        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-        
-        gradient.addColorStop(0, `rgba(${p.color}, ${opacity * 0.5})`);
-        gradient.addColorStop(0.5, `rgba(${p.color}, ${opacity * 0.2})`);
-        gradient.addColorStop(1, `rgba(${p.color}, 0)`);
-        
-        ctx.fillStyle = gradient;
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fill();
-      });
+      // Rocking motion
+      const rockAngle = Math.sin(time * 1.5) * 0.05;
+      ctx.translate(centerX, centerY);
+      ctx.rotate(rockAngle);
+      ctx.translate(-centerX, -centerY);
 
-      ctx.restore();
+      // Water path
+      const waterLevel = centerY + sphereRadius * 0.2;
+      const waveAmplitude = sphereRadius * 0.05;
+      const waveFrequency = 10 / width;
+      const waveSpeed = 4;
+
+      ctx.beginPath();
+      // Start outside the visible sphere to ensure it fills corner to corner during rocking
+      const startX = centerX - sphereRadius * 1.5;
+      const endX = centerX + sphereRadius * 1.5;
+      ctx.moveTo(startX, height + 10);
+      ctx.lineTo(endX, height + 10);
+      ctx.lineTo(endX, waterLevel);
+
+      // Wavy surface
+      for (let x = endX; x >= startX; x--) {
+          const waveY = waterLevel + Math.sin(x * waveFrequency + time * waveSpeed) * waveAmplitude;
+          ctx.lineTo(x, waveY);
+      }
+      ctx.closePath();
+      
+      // Water gradient
+      const waterGradient = ctx.createLinearGradient(0, centerY, 0, height);
+      waterGradient.addColorStop(0, 'rgba(59, 130, 246, 0.7)');
+      waterGradient.addColorStop(1, 'rgba(30, 64, 175, 0.9)');
+      ctx.fillStyle = waterGradient;
+      ctx.fill();
+
+      ctx.restore(); // Restore from rotation
+      ctx.restore(); // Restore from clipping
+
+      // --- Glass highlight ---
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, sphereRadius, 0, Math.PI * 2);
+      
+      const highlightGradient = ctx.createRadialGradient(
+        centerX - sphereRadius * 0.4, 
+        centerY - sphereRadius * 0.4, 
+        sphereRadius * 0.1, 
+        centerX, 
+        centerY, 
+        sphereRadius
+      );
+      highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+      highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = highlightGradient;
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.restore(); // Restore from scaling
       
       animationFrameId = requestAnimationFrame(draw);
     };

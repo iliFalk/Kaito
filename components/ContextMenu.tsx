@@ -57,7 +57,7 @@ const ContextMenu = forwardRef<HTMLDivElement>((props, ref) => {
     return (
         <div
             ref={menuRef}
-            className="fixed z-50 bg-white rounded-xl shadow-2xl border border-gray-200/80 p-1 flex flex-col items-start min-w-[220px] animate-fade-in-fast"
+            className="fixed z-50 bg-[#3c3c3c] rounded-xl shadow-2xl border border-[#5a5a5a] p-1 flex flex-col items-start min-w-[220px] animate-fade-in-fast"
             style={{ top: adjustedPosition.top, left: adjustedPosition.left }}
         >
             <ul className="w-full">
@@ -65,18 +65,18 @@ const ContextMenu = forwardRef<HTMLDivElement>((props, ref) => {
                     <li key={shortcut.id}>
                         <button
                             onClick={() => handleShortcutClick(shortcut)}
-                            className="w-full text-left px-3 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded-md flex items-center gap-3 transition-colors"
+                            className="w-full text-left px-3 py-2 text-sm text-gray-100 hover:bg-[#5a5a5a] rounded-md flex items-center gap-3 transition-colors"
                         >
-                            <Icon name={shortcut.icon} className="w-5 h-5 text-gray-500" />
+                            <Icon name={shortcut.icon} className="w-5 h-5 text-gray-400" />
                             <span className="font-medium">{shortcut.title}</span>
                         </button>
                     </li>
                 ))}
             </ul>
-            <div className="w-full px-1 pt-1 mt-1 border-t border-gray-100">
+            <div className="w-full px-1 pt-1 mt-1 border-t border-[#5a5a5a]">
                 <button
                     onClick={handleSettingsClick}
-                    className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md flex items-center gap-3 transition-colors"
+                    className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-[#5a5a5a] rounded-md flex items-center gap-3 transition-colors"
                 >
                     <Icon name="Cog6ToothIcon" className="w-5 h-5 text-gray-400" />
                     <span>Manage Shortcuts...</span>

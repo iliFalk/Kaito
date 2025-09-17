@@ -1,7 +1,7 @@
 #ai-sidekick-shortcut-toolbar {
   position: absolute;
   z-index: 2147483647;
-  background-color: rgba(17, 24, 39, 0.9); /* bg-gray-900/90 */
+  background-color: rgba(43, 43, 43, 0.9); /* #2b2b2b/90 */
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   border-radius: 0.5rem; /* rounded-lg */
@@ -33,7 +33,7 @@
 }
 
 #ai-sidekick-shortcut-toolbar button:hover {
-  background-color: rgba(55, 65, 81, 0.7); /* bg-gray-600/70 */
+  background-color: rgba(122, 122, 122, 0.7); /* #7a7a7a/70 */
   color: white;
 }
 
@@ -50,7 +50,7 @@
   top: 50%;
   transform: translateY(-50%);
   margin-left: 12px;
-  background-color: #111827; /* bg-gray-900 */
+  background-color: #1a1a1a;
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
@@ -70,7 +70,7 @@
 #ai-sidekick-shortcut-toolbar .separator {
   width: 80%;
   height: 1px;
-  background-color: rgba(75, 85, 99, 0.5); /* bg-gray-500/50 */
+  background-color: rgba(154, 154, 154, 0.5); /* #9a9a9a/50 */
   margin: 2px auto;
 }
 
