@@ -1,3 +1,4 @@
+
 export enum Sender {
   User = 'user',
   AI = 'ai',
@@ -30,10 +31,18 @@ export interface SearchEngine {
   url: string;
 }
 
+export enum ApiType {
+  Gemini = 'gemini',
+  OpenAI = 'openai',
+}
+
 export interface AIModel {
   id: string;
   name: string;
   model: string;
+  apiType: ApiType;
+  apiKey?: string;
+  baseUrl?: string;
   isDefault?: boolean;
   supportImage?: boolean;
   contextWindow?: number;

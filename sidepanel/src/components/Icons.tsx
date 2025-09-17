@@ -11,7 +11,10 @@ export const Icon = ({ name, className }: { name: string; className?: string }) 
       </svg>
     ),
     ChatBubbleLeftRightIcon: (props) => (
-       <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193l-3.722.534A9.003 9.003 0 0 1 12 15.75a9.003 9.003 0 0 1-4.057 1.082l-3.722-.534A2.002 2.002 0 0 1 2.25 15v-4.286c0-.97.616-1.813 1.5-2.097m16.5 0-.229-.08a2.002 2.002 0 0 0-2.053.228l-.934.934V5.625a2.25 2.25 0 0 0-2.25-2.25h-9a2.25 2.25 0 0 0-2.25 2.25v3.432l-.934-.934a2.002 2.002 0 0 0-2.053-.228l-.229.081m16.5 0c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193l-3.722.534A9.003 9.003 0 0 1 12 15.75a9.003 9.003 0 0 1-4.057 1.082l-3.722-.534A2.002 2.002 0 0 1 2.25 15v-4.286c0-.97.616-1.813 1.5-2.097" /></svg>
+       <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+         <path strokeLinecap="round" strokeLinejoin="round" d="M10 11h-4a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v6c0 2.667 -1.333 4.333 -4 5" />
+         <path strokeLinecap="round" strokeLinejoin="round" d="M19 11h-4a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v6c0 2.667 -1.333 4.333 -4 5" />
+       </svg>
     ),
     Cog6ToothIcon: (props) => (
       <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -97,6 +100,9 @@ export const Icon = ({ name, className }: { name: string; className?: string }) 
       <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
       </svg>
+    ),
+    EllipsisHorizontalIcon: (props) => (
+        <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>
     ),
   };
   const IconComponent = icons[name];

@@ -15,9 +15,33 @@ const NeuralAnimation = ({ className }) => {
 
     let animationFrameId;
     const particles = [];
-    
-    let particleCount = 10; // Fewer particles
-    let connectDistance = 50;
+    const particleCount = 50;
+    let time = Math.random() * 100;
+
+    let width = 0;
+    let height = 0;
+    let centerX = 0;
+    let centerY = 0;
+    let sphereRadius = 0;
+
+    const shades = ['80,80,80', '100,100,100', '120,120,120', '140,140,140'];
+
+    const createParticle = () => {
+      // Originate near the bottom center
+      const angle = Math.PI + (Math.random() - 0.5) * Math.PI * 0.8;
+      const dist = Math.random() * sphereRadius * 0.4;
+      
+      return {
+        x: centerX + Math.cos(angle) * dist,
+        y: centerY + Math.sin(angle) * dist,
+        radius: Math.random() * sphereRadius * 0.4 + sphereRadius * 0.1,
+        color: shades[Math.floor(Math.random() * shades.length)],
+        life: 0,
+        maxLife: Math.random() * 150 + 100,
+        speed: Math.random() * 0.5 + 0.2,
+        drift: - (Math.random() * 0.3 + 0.1), // Upward drift
+      };
+    };
 
     const resizeCanvas = () => {
       const dpr = window.devicePixelRatio || 1;
@@ -27,91 +51,73 @@ const NeuralAnimation = ({ className }) => {
       ctx.scale(dpr, dpr);
       canvas.style.width = `${rect.width}px`;
       canvas.style.height = `${rect.height}px`;
-      
-      const baseSize = 36; // Original size was w-9 -> 36px
-      if (rect.width > 0) {
-        const scale = rect.width / baseSize;
-        particleCount = Math.max(10, Math.round(10 * scale)); // Fewer particles
-        connectDistance = Math.min(50 * scale, 150);
-      }
+
+      width = rect.width;
+      height = rect.height;
+      centerX = width / 2;
+      centerY = height / 2;
+      sphereRadius = Math.min(width, height) / 2;
       
       particles.length = 0;
-      const width = rect.width;
-      const height = rect.height;
       for (let i = 0; i < particleCount; i++) {
-        particles.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 0.6, // Increased speed
-          vy: (Math.random() - 0.5) * 0.6, // Increased speed
-          radius: Math.random() * 1.0 + 0.5,
-        });
+        // Initialize with some life already so they don't all pop in at once
+        const p = createParticle();
+        p.life = Math.random() * p.maxLife;
+        particles.push(p);
       }
     };
-    
+
     resizeCanvas();
-    
+
     const draw = () => {
-      const width = canvas.width / (window.devicePixelRatio || 1);
-      const height = canvas.height / (window.devicePixelRatio || 1);
-      const radius = Math.min(width, height) / 2;
-      const centerX = width / 2;
-      const centerY = height / 2;
+      time += 0.008;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw animation content
       ctx.fillStyle = 'black';
       ctx.fillRect(0, 0, width, height);
 
-      particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, sphereRadius, 0, Math.PI * 2);
+      ctx.clip();
+      
+      // This filter is key to the smoke/metaball effect
+      ctx.filter = `blur(${sphereRadius * 0.1}px) contrast(25) brightness(1.0)`;
 
-        if (p.x < 0 || p.x > width) p.vx *= -1;
-        if (p.y < 0 || p.y > height) p.vy *= -1;
+      particles.forEach((p, index) => {
+        // Update particle
+        const angle = Math.sin(p.x * 0.01 + time) + Math.cos(p.y * 0.01 + time);
+        p.x += Math.cos(angle) * p.speed;
+        p.y += Math.sin(angle) * p.speed + p.drift;
         
+        p.life++;
+        
+        const distFromCenter = Math.sqrt(Math.pow(p.x - centerX, 2) + Math.pow(p.y - centerY, 2));
+
+        if (p.life > p.maxLife || distFromCenter > sphereRadius * 1.5) {
+            particles[index] = createParticle();
+        }
+        
+        // Draw particle
         ctx.beginPath();
+        // Fade in at the start, fade out at the end
+        const opacity = Math.sin((p.life / p.maxLife) * Math.PI);
+        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+        
+        gradient.addColorStop(0, `rgba(${p.color}, ${opacity * 0.8})`);
+        gradient.addColorStop(0.5, `rgba(${p.color}, ${opacity * 0.5})`);
+        gradient.addColorStop(1, `rgba(${p.color}, 0)`);
+        
+        ctx.fillStyle = gradient;
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
         ctx.fill();
       });
 
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const p1 = particles[i];
-          const p2 = particles[j];
-          const dist = Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
-
-          if (dist < connectDistance) {
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${0.7 - dist / connectDistance})`;
-            ctx.lineWidth = 0.3;
-            ctx.stroke();
-          }
-        }
-      }
-      
-      // Apply soft circular mask
-      ctx.globalCompositeOperation = 'destination-in';
-      
-      const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.85, centerX, centerY, radius);
-      gradient.addColorStop(0, 'rgba(0,0,0,1)');
-      gradient.addColorStop(1, 'rgba(0,0,0,0)');
-
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, width, height);
-
-      // Restore composite operation
-      ctx.globalCompositeOperation = 'source-over';
+      ctx.restore(); // This removes the filter and clipping path
       
       animationFrameId = requestAnimationFrame(draw);
     };
 
     draw();
-
     window.addEventListener('resize', resizeCanvas);
 
     return () => {
@@ -122,7 +128,7 @@ const NeuralAnimation = ({ className }) => {
 
   return (
     React.createElement('div', { ref: containerRef, className: className ?? "w-9 h-9" },
-      React.createElement('canvas', { ref: canvasRef })
+      React.createElement('canvas', { ref: canvasRef, style: { borderRadius: '50%' } })
     )
   );
 };

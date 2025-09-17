@@ -1,10 +1,13 @@
+
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sender } from '../types.js';
+import { Sender, ApiType } from '../types.js';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { DEFAULT_MODELS, PANEL_ROUTES, DEFAULT_SHORTCUTS } from '../constants.js';
 import { generateChatStream } from '../services/geminiService.js';
-import { UserIcon, SparklesIcon, Icon } from '../components/Icons.js';
+import { generateOpenAIChatStream } from '../services/openAIService.js';
+import { UserIcon, Icon } from '../components/Icons.js';
 import { useAppContext } from '../context/AppContext.js';
 import NeuralAnimation from '../components/NeuralAnimation.js';
 
@@ -24,9 +27,7 @@ const SimpleMarkdown = React.memo(({ content }) => {
 
 const AIMessage = ({ message }) => (
     React.createElement('div', { className: "flex items-start gap-3" },
-        React.createElement('div', { className: "flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center" },
-            React.createElement(SparklesIcon, { className: "w-5 h-5 text-white" })
-        ),
+        React.createElement(NeuralAnimation, { className: "flex-shrink-0 w-8 h-8" }),
         React.createElement('div', { className: "flex-1 bg-gray-100 rounded-lg p-3 max-w-[calc(100%-3rem)]" },
             React.createElement('div', { className: "text-gray-800 leading-relaxed" },
                 message.isStreaming && message.text.length === 0 ? (
@@ -46,25 +47,25 @@ const AIMessage = ({ message }) => (
 
 const UserMessage = ({ message }) => (
     React.createElement('div', { className: "flex items-start gap-3 justify-end" },
-        React.createElement('div', { className: "flex-1 bg-blue-600 rounded-lg p-3 max-w-[calc(100%-3rem)] order-1" },
-            React.createElement('p', { className: "text-white leading-relaxed" }, message.text),
-            message.quotedText && (
-                React.createElement('div', { className: "mt-2 p-2 border-l-2 border-blue-400 bg-blue-500/50 rounded-r-md" },
-                    React.createElement('p', { className: "text-xs text-blue-100 italic truncate" }, message.quotedText)
-                )
-            ),
-            message.filePreview && (
-                React.createElement('div', { className: "mt-2" },
+        React.createElement('div', { className: "flex-1 bg-[#5b89c1] rounded-lg p-3 max-w-[calc(100%-3rem)] order-1" },
+             React.createElement('p', { className: "text-white leading-relaxed" }, message.text),
+             message.quotedText && (
+                 React.createElement('div', { className: "mt-2 p-2 border-l-2 border-[#8eacd4] bg-[#5b89c1]/50 rounded-r-md" },
+                    React.createElement('p', { className: "text-xs text-[#e8eef6] italic truncate" }, message.quotedText)
+                 )
+             ),
+             message.filePreview && (
+                 React.createElement('div', { className: "mt-2" },
                     React.createElement('img', { src: message.filePreview, alt: message.fileName, className: "max-h-32 rounded-md" }),
-                    React.createElement('p', { className: "text-xs text-blue-100 mt-1" }, message.fileName)
-                )
-            ),
-            message.pageContext && (
-                React.createElement('div', { className: "mt-2 p-2 border-l-2 border-blue-400 bg-blue-500/50 rounded-r-md" },
-                    React.createElement('p', { className: "text-xs text-blue-100 font-semibold" }, message.pageContext.title),
-                    React.createElement('p', { className: "text-xs text-blue-100 italic truncate" }, message.pageContext.url)
-                )
-            )
+                    React.createElement('p', { className: "text-xs text-[#e8eef6] mt-1" }, message.fileName)
+                 )
+             ),
+             message.pageContext && (
+                 React.createElement('div', { className: "mt-2 p-2 border-l-2 border-[#8eacd4] bg-[#5b89c1]/50 rounded-r-md" },
+                    React.createElement('p', { className: "text-xs text-[#e8eef6] font-semibold" }, message.pageContext.title),
+                    React.createElement('p', { className: "text-xs text-[#e8eef6] italic truncate" }, message.pageContext.url)
+                 )
+             )
         ),
         React.createElement('div', { className: "flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center order-2" },
             React.createElement(UserIcon, { className: "w-5 h-5 text-gray-600" })
@@ -94,6 +95,7 @@ const Conversation = () => {
     const [pageContext, setPageContext] = useState(null);
 
     const [shortcuts] = useLocalStorage('shortcuts', DEFAULT_SHORTCUTS);
+    const [models] = useLocalStorage('ai_models', DEFAULT_MODELS);
     const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
     
     const messagesEndRef = useRef(null);
@@ -102,6 +104,8 @@ const Conversation = () => {
     const actionsDropdownRef = useRef(null);
 
     const messages = currentConversationId ? conversations[currentConversationId] || [] : [];
+    const activeModel = models.find(m => m.isDefault) || models[0] || DEFAULT_MODELS[0];
+    const canAttachFile = activeModel?.apiType === ApiType.Gemini && activeModel?.supportImage;
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -134,7 +138,7 @@ const Conversation = () => {
 
     const handleFileChange = (event) => {
         const file = event.target.files?.[0];
-        if (file) {
+        if (file && canAttachFile) {
             setAttachedFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -164,7 +168,7 @@ const Conversation = () => {
         if (!chrome || !chrome.runtime) return;
 
         const handleMessage = (request) => {
-            if (request.type === 'screenshotTaken' && request.dataUrl) {
+            if (request.type === 'screenshotTaken' && request.dataUrl && canAttachFile) {
                 const dataUrlToFile = async (dataUrl, fileName) => {
                     const res = await fetch(dataUrl);
                     const blob = await res.blob();
@@ -184,13 +188,38 @@ const Conversation = () => {
                 chrome.runtime.onMessage.removeListener(handleMessage);
             }
         };
-    }, []);
+    }, [canAttachFile]);
 
     const handlePasteContext = () => {
-        setPageContext({
-            title: 'Google AI Studio',
-            url: 'https://aistudio.google.com/u/1/apps/drive/11z7WgqCtAQYOdZfrr1WE-jHlykRLcD...',
-        });
+        const chrome = window.chrome;
+        if (typeof chrome !== 'undefined' && chrome.tabs) {
+            chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+                if (chrome.runtime.lastError) {
+                    console.error('AI Sidekick: Error querying tabs:', chrome.runtime.lastError.message);
+                    return;
+                }
+                if (tabs && tabs.length > 0 && tabs[0].url) {
+                    // Filter out the extension's own pages.
+                    if (tabs[0].url.startsWith('chrome-extension://')) {
+                         console.warn("AI Sidekick: Active tab is an extension page. Cannot get page context.");
+                         return;
+                    }
+                    setPageContext({
+                        title: tabs[0].title || 'No title',
+                        url: tabs[0].url,
+                    });
+                } else {
+                    console.error('AI Sidekick: Could not get active tab info.');
+                }
+            });
+        } else {
+            // Fallback for development outside of the extension
+            console.warn("AI Sidekick: Not in a Chrome extension environment. Using placeholder context.");
+            setPageContext({
+                title: 'Example Page Title',
+                url: 'https://example.com',
+            });
+        }
     };
 
     const removePageContext = () => {
@@ -230,27 +259,38 @@ const Conversation = () => {
         setQuotedText('');
         removeAttachment();
         setPageContext(null);
-
-        if (!process.env.API_KEY) {
-            const errorMessage = `API key is not configured. Please ensure the API_KEY environment variable is set.`;
-            updateStreamingMessage(currentConversationId, aiMessageId, '', true, errorMessage);
-            setIsLoading(false);
-            return;
-        }
-
+        
         try {
-            const history = getConversationHistory(currentConversationId);
-            const modelName = DEFAULT_MODELS[0].model;
-            const stream = await generateChatStream(promptForApi, history, modelName, process.env.API_KEY, fileToSend || undefined);
-            
-            for await (const chunk of stream) {
-                const chunkText = chunk.text;
-                updateStreamingMessage(currentConversationId, aiMessageId, chunkText, false);
+            if (activeModel.apiType === ApiType.OpenAI) {
+                if (!activeModel.apiKey || !activeModel.baseUrl) {
+                    throw new Error("OpenAI model is not configured with API Key and Base URL.");
+                }
+                const history = getConversationHistory(currentConversationId)
+                    .map(h => ({
+                        role: h.role === 'user' ? 'user' : 'assistant',
+                        content: h.parts[0].text
+                    }));
+
+                const stream = generateOpenAIChatStream(promptForApi, history, activeModel.apiKey, activeModel.baseUrl, activeModel.model, activeModel.temperature);
+                for await (const chunk of stream) {
+                    updateStreamingMessage(currentConversationId, aiMessageId, chunk, false);
+                }
+            } else { // Gemini
+                if (!process.env.API_KEY) {
+                    throw new Error("API key is not configured. Please ensure the API_KEY environment variable is set.");
+                }
+                const history = getConversationHistory(currentConversationId);
+                const stream = await generateChatStream(promptForApi, history, activeModel.model, process.env.API_KEY, fileToSend || undefined);
+                
+                for await (const chunk of stream) {
+                    const chunkText = chunk.text;
+                    updateStreamingMessage(currentConversationId, aiMessageId, chunkText, false);
+                }
             }
             updateStreamingMessage(currentConversationId, aiMessageId, '', true);
 
         } catch (error) {
-            console.error("Gemini API error:", error);
+            console.error("AI API error:", error);
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
             updateStreamingMessage(currentConversationId, aiMessageId, '', true, `Failed to get response: ${errorMessage}`);
         } finally {
@@ -259,7 +299,7 @@ const Conversation = () => {
     }, [
         userInput, attachedFile, filePreview, quotedText, pageContext, 
         currentConversationId, addMessage, updateStreamingMessage, 
-        getConversationHistory
+        getConversationHistory, models, activeModel
     ]);
 
     useEffect(() => {
@@ -301,6 +341,16 @@ const Conversation = () => {
         }
         handleSend({ prompt });
     };
+
+    if (!activeModel) {
+        return (
+            React.createElement('div', { className: "flex flex-col items-center justify-center h-full text-center p-4" },
+                React.createElement(Icon, { name: "CpuChipIcon", className: "w-16 h-16 text-red-500 mb-4" }),
+                React.createElement('h2', { className: "text-xl font-bold text-gray-800" }, "No AI Model Configured"),
+                React.createElement('p', { className: "text-gray-600 mt-2" }, "Please go to Settings > Manage AI Models to add and select a default model.")
+            )
+        )
+    }
 
     return (
         React.createElement('div', { className: "flex flex-col h-full bg-gray-50 text-gray-800" },
@@ -388,17 +438,17 @@ const Conversation = () => {
                         React.createElement('div', { className: "flex items-center justify-between mb-2 px-1" },
                             React.createElement('div', { className: "flex items-center gap-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg px-3 py-1.5" },
                                 React.createElement(Icon, { name: "CpuChipIcon", className: "w-4 h-4" }),
-                                React.createElement('span', null, DEFAULT_MODELS[0].name)
+                                React.createElement('span', null, activeModel.name)
                             ),
                             React.createElement('div', { className: "flex items-center text-gray-500" },
-                                React.createElement('input', { type: "file", ref: fileInputRef, onChange: handleFileChange, className: "hidden", accept: "image/*" }),
-                                React.createElement('button', { onClick: () => fileInputRef.current?.click(), className: "p-2 hover:bg-gray-100 rounded-lg", 'aria-label': "Attach file" },
+                                React.createElement('input', { type: "file", ref: fileInputRef, onChange: handleFileChange, className: "hidden", accept: "image/*", disabled: !canAttachFile }),
+                                React.createElement('button', { onClick: () => fileInputRef.current?.click(), className: "p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed", 'aria-label': "Attach file", disabled: !canAttachFile, title: !canAttachFile ? "File attachments not supported for this model" : "Attach file" },
                                     React.createElement(Icon, { name: "PaperClipIcon", className: "w-5 h-5" })
                                 ),
                                 React.createElement('button', { onClick: handlePasteContext, className: "p-2 hover:bg-gray-100 rounded-lg", 'aria-label': "Paste from clipboard" },
                                     React.createElement(Icon, { name: "LinkIcon", className: "w-5 h-5" })
                                 ),
-                                React.createElement('button', { onClick: startScreenshot, className: "p-2 hover:bg-gray-100 rounded-lg", 'aria-label': "Take screenshot" },
+                                React.createElement('button', { onClick: startScreenshot, className: "p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed", 'aria-label': "Take screenshot", disabled: !canAttachFile, title: !canAttachFile ? "Screenshots not supported for this model" : "Take screenshot" },
                                     React.createElement(Icon, { name: "CameraIcon", className: "w-5 h-5" })
                                 )
                             )

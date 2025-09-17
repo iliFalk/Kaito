@@ -2,7 +2,7 @@ import React from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { DEFAULT_SHORTCUTS } from '../constants.js';
 import { Icon } from '../components/Icons.js';
-const { useState, useRef } = React;
+const { useState, useRef, useEffect } = React;
 
 const ALL_ICONS = ['DocumentTextIcon', 'LanguageIcon', 'CheckCircleIcon', 'QuestionMarkCircleIcon', 'PencilIcon', 'SparklesIcon', 'BoltIcon', 'CodeBracketIcon'];
 
@@ -12,11 +12,13 @@ const ShortcutModal = ({ isOpen, onClose, onSave, shortcut }) => {
     const [icon, setIcon] = useState(shortcut?.icon || ALL_ICONS[0]);
     const isEditing = !!shortcut;
 
-    React.useEffect(() => {
-        setTitle(shortcut?.title || '');
-        setPrompt(shortcut?.prompt || '');
-        setIcon(shortcut?.icon || ALL_ICONS[0]);
-    }, [shortcut]);
+    useEffect(() => {
+        if (isOpen) {
+            setTitle(shortcut?.title || '');
+            setPrompt(shortcut?.prompt || '');
+            setIcon(shortcut?.icon || ALL_ICONS[0]);
+        }
+    }, [shortcut, isOpen]);
 
     if (!isOpen) return null;
 
@@ -99,7 +101,7 @@ const Options = () => {
 
     const handleSaveShortcut = (shortcut) => {
         if (editingShortcut) {
-            setShortcuts(prev => prev.map(s => s.id === editingShortcut.id ? { ...shortcut, id: editingShortcut.id, isDefault: false } : s));
+            setShortcuts(prev => prev.map(s => s.id === editingShortcut.id ? { ...shortcut, id: editingShortcut.id, isDefault: s.isDefault } : s));
         } else {
             setShortcuts(prev => [...prev, { ...shortcut, isDefault: false }]);
         }
@@ -118,47 +120,74 @@ const Options = () => {
     };
     
     return (
-        React.createElement('div', { className: "p-4 bg-gray-50 h-full text-gray-800" },
-            React.createElement('h1', { className: "text-xl font-bold mb-4" }, "Quick Action Shortcuts"),
-            React.createElement('p', { className: "text-gray-600 mb-6" }, "Customize and reorder your one-click prompts for the chat input."),
-
-            React.createElement('div', { className: "space-y-2", onDragEnd: handleDrop },
-                shortcuts.map((shortcut, index) => (
-                    React.createElement('div', {
-                        key: shortcut.id,
-                        draggable: true,
-                        onDragStart: (e) => handleDragStart(e, index),
-                        onDragEnter: (e) => handleDragEnter(e, index),
-                        onDragOver: (e) => e.preventDefault(),
-                        className: "flex items-center p-3 bg-white rounded-lg border border-gray-200 cursor-grab active:cursor-grabbing"
-                    },
-                        React.createElement(Icon, { name: "Bars3Icon", className: "w-5 h-5 text-gray-400 mr-3" }),
-                        React.createElement(Icon, { name: shortcut.icon, className: "w-6 h-6 text-blue-500 mr-4" }),
-                        React.createElement('span', { className: "flex-1 font-medium" }, shortcut.title),
-                        shortcut.isDefault ? (
-                            React.createElement('div', { className: "flex items-center gap-2" },
-                                React.createElement('span', { className: "text-xs bg-gray-200 text-gray-600 font-semibold px-2 py-1 rounded-full" }, "Default"),
-                                React.createElement('button', { onClick: () => openModal(shortcut), className: "p-1 hover:bg-gray-100 rounded-full", 'aria-label': "Edit shortcut" },
-                                    React.createElement(Icon, { name: "PencilIcon", className: "w-4 h-4 text-gray-500" })
-                                )
+        React.createElement('div', { className: "p-4 bg-gray-50 h-full text-gray-800 overflow-y-auto" },
+             React.createElement('div', { className: "mb-6" },
+                React.createElement('h1', { className: "text-xl font-bold" }, "Quick Action Shortcuts"),
+                React.createElement('p', { className: "text-gray-600" }, "Customize and reorder your one-click prompts for the context menu.")
+             ),
+             
+             React.createElement('div', { className: "mb-8" },
+                React.createElement('h2', { className: "text-lg font-bold mb-2 text-gray-700" }, "Context Menu Preview"),
+                React.createElement('p', { className: "text-sm text-gray-500 mb-4" }, "This is how the context menu will look when you select text on a webpage. The changes you make below will be reflected here live."),
+                React.createElement('div', { className: "bg-gray-200 p-8 rounded-lg flex justify-center items-center" },
+                    React.createElement('div', { className: "bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-1 flex flex-col gap-1" },
+                        React.createElement('button', { title: "Quote Text", className: "group relative p-2 rounded-md text-gray-300 hover:bg-gray-600/70 hover:text-white transition-colors" },
+                            React.createElement(Icon, { name: "ChatBubbleLeftRightIcon", className: "w-5 h-5" })
+                        ),
+                        React.createElement('div', { className: "h-px bg-gray-500/50 my-1 mx-1" }),
+                        ...shortcuts.slice(0, 4).map(shortcut => (
+                            React.createElement('button', { key: shortcut.id, title: shortcut.title, className: "group relative p-2 rounded-md text-gray-300 hover:bg-gray-600/70 hover:text-white transition-colors" },
+                                React.createElement(Icon, { name: shortcut.icon, className: "w-5 h-5" })
                             )
-                        ) : (
-                            React.createElement('div', { className: "flex items-center gap-2" },
-                                React.createElement('button', { onClick: () => openModal(shortcut), className: "p-1 hover:bg-gray-100 rounded-full", 'aria-label': "Edit shortcut" },
-                                    React.createElement(Icon, { name: "PencilIcon", className: "w-4 h-4 text-gray-500" })
-                                ),
-                                React.createElement('button', { onClick: () => handleDelete(shortcut.id), className: "p-1 hover:bg-gray-100 rounded-full", 'aria-label': "Delete shortcut" },
-                                    React.createElement(Icon, { name: "TrashIcon", className: "w-4 h-4 text-red-500" })
+                        )),
+                        React.createElement('button', { title: "Manage Shortcuts...", className: "group relative p-2 rounded-md text-gray-300 hover:bg-gray-600/70 hover:text-white transition-colors" },
+                            React.createElement(Icon, { name: "EllipsisHorizontalIcon", className: "w-5 h-5" })
+                        )
+                    )
+                )
+             ),
+
+            React.createElement('div', null,
+                React.createElement('h2', { className: "text-lg font-bold mb-3 text-gray-700" }, "Edit Shortcuts"),
+                React.createElement('div', { className: "space-y-2", onDragEnd: handleDrop },
+                    shortcuts.map((shortcut, index) => (
+                        React.createElement('div', {
+                            key: shortcut.id,
+                            draggable: true,
+                            onDragStart: (e) => handleDragStart(e, index),
+                            onDragEnter: (e) => handleDragEnter(e, index),
+                            onDragOver: (e) => e.preventDefault(),
+                            className: "flex items-center p-3 bg-white rounded-lg border border-gray-200 cursor-grab active:cursor-grabbing"
+                        },
+                            React.createElement(Icon, { name: "Bars3Icon", className: "w-5 h-5 text-gray-400 mr-3" }),
+                            React.createElement(Icon, { name: shortcut.icon, className: "w-6 h-6 text-blue-500 mr-4" }),
+                            React.createElement('span', { className: "flex-1 font-medium" }, shortcut.title),
+                            shortcut.isDefault ? (
+                                React.createElement('div', { className: "flex items-center gap-2" },
+                                    React.createElement('span', { className: "text-xs bg-gray-200 text-gray-600 font-semibold px-2 py-1 rounded-full" }, "Default"),
+                                    React.createElement('button', { onClick: () => openModal(shortcut), className: "p-1 hover:bg-gray-100 rounded-full", 'aria-label': "Edit shortcut" },
+                                        React.createElement(Icon, { name: "PencilIcon", className: "w-4 h-4 text-gray-500" })
+                                    )
+                                )
+                            ) : (
+                                React.createElement('div', { className: "flex items-center gap-2" },
+                                    React.createElement('button', { onClick: () => openModal(shortcut), className: "p-1 hover:bg-gray-100 rounded-full", 'aria-label': "Edit shortcut" },
+                                        React.createElement(Icon, { name: "PencilIcon", className: "w-4 h-4 text-gray-500" })
+                                    ),
+                                    React.createElement('button', { onClick: () => handleDelete(shortcut.id), className: "p-1 hover:bg-gray-100 rounded-full", 'aria-label': "Delete shortcut" },
+                                        React.createElement(Icon, { name: "TrashIcon", className: "w-4 h-4 text-red-500" })
+                                    )
                                 )
                             )
                         )
-                    )
-                ))
+                    ))
+                ),
+
+                React.createElement('button', { onClick: () => openModal(null), className: "mt-6 w-full py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-500 transition-colors" },
+                    "Create New Shortcut"
+                )
             ),
 
-            React.createElement('button', { onClick: () => openModal(null), className: "mt-6 w-full py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-500 transition-colors" },
-                "Create New Shortcut"
-            ),
 
             React.createElement(ShortcutModal, {
                 isOpen: isModalOpen,

@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Message, AIModel, Shortcut } from '../types';
-import { Sender } from '../types';
+import type { Message, AIModel } from '../types';
+import { Sender, ApiType } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { DEFAULT_MODELS, PANEL_ROUTES, DEFAULT_SHORTCUTS } from '../constants';
 import { generateChatStream } from '../services/geminiService';
-import { UserIcon, SparklesIcon, Icon } from '../components/Icons';
+import { generateOpenAIChatStream } from '../services/openAIService';
+import { UserIcon, Icon } from '../components/Icons';
 import { useAppContext } from '../context/AppContext';
 import NeuralAnimation from '../components/NeuralAnimation';
 
@@ -23,9 +24,7 @@ const SimpleMarkdown: React.FC<{ content: string }> = React.memo(({ content }) =
 
 const AIMessage: React.FC<{ message: Message }> = ({ message }) => (
     <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-            <SparklesIcon className="w-5 h-5 text-white" />
-        </div>
+        <NeuralAnimation className="flex-shrink-0 w-8 h-8" />
         <div className="flex-1 bg-gray-100 rounded-lg p-3 max-w-[calc(100%-3rem)]">
             <div className="text-gray-800 leading-relaxed">
                 {message.isStreaming && message.text.length === 0 ? (
@@ -45,23 +44,23 @@ const AIMessage: React.FC<{ message: Message }> = ({ message }) => (
 
 const UserMessage: React.FC<{ message: Message }> = ({ message }) => (
     <div className="flex items-start gap-3 justify-end">
-        <div className="flex-1 bg-blue-600 rounded-lg p-3 max-w-[calc(100%-3rem)] order-1">
+        <div className="flex-1 bg-[#5b89c1] rounded-lg p-3 max-w-[calc(100%-3rem)] order-1">
              <p className="text-white leading-relaxed">{message.text}</p>
              {message.quotedText && (
-                 <div className="mt-2 p-2 border-l-2 border-blue-400 bg-blue-500/50 rounded-r-md">
-                    <p className="text-xs text-blue-100 italic truncate">{message.quotedText}</p>
+                 <div className="mt-2 p-2 border-l-2 border-[#8eacd4] bg-[#5b89c1]/50 rounded-r-md">
+                    <p className="text-xs text-[#e8eef6] italic truncate">{message.quotedText}</p>
                  </div>
              )}
              {message.filePreview && (
                  <div className="mt-2">
                     <img src={message.filePreview} alt={message.fileName} className="max-h-32 rounded-md"/>
-                    <p className="text-xs text-blue-100 mt-1">{message.fileName}</p>
+                    <p className="text-xs text-[#e8eef6] mt-1">{message.fileName}</p>
                  </div>
              )}
              {message.pageContext && (
-                 <div className="mt-2 p-2 border-l-2 border-blue-400 bg-blue-500/50 rounded-r-md">
-                    <p className="text-xs text-blue-100 font-semibold">{message.pageContext.title}</p>
-                    <p className="text-xs text-blue-100 italic truncate">{message.pageContext.url}</p>
+                 <div className="mt-2 p-2 border-l-2 border-[#8eacd4] bg-[#5b89c1]/50 rounded-r-md">
+                    <p className="text-xs text-[#e8eef6] font-semibold">{message.pageContext.title}</p>
+                    <p className="text-xs text-[#e8eef6] italic truncate">{message.pageContext.url}</p>
                  </div>
              )}
         </div>
@@ -92,7 +91,8 @@ const Conversation: React.FC = () => {
     const [quotedText, setQuotedText] = useState('');
     const [pageContext, setPageContext] = useState<{ title: string; url: string } | null>(null);
 
-    const [shortcuts] = useLocalStorage<Shortcut[]>('shortcuts', DEFAULT_SHORTCUTS);
+    const [shortcuts] = useLocalStorage('shortcuts', DEFAULT_SHORTCUTS);
+    const [models] = useLocalStorage<AIModel[]>('ai_models', DEFAULT_MODELS);
     const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -101,6 +101,8 @@ const Conversation: React.FC = () => {
     const actionsDropdownRef = useRef<HTMLDivElement>(null);
 
     const messages = currentConversationId ? conversations[currentConversationId] || [] : [];
+    const activeModel = models.find(m => m.isDefault) || models[0] || DEFAULT_MODELS[0];
+    const canAttachFile = activeModel?.apiType === ApiType.Gemini && activeModel?.supportImage;
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -133,7 +135,7 @@ const Conversation: React.FC = () => {
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (file) {
+        if (file && canAttachFile) {
             setAttachedFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -163,7 +165,7 @@ const Conversation: React.FC = () => {
         if (!chrome || !chrome.runtime) return;
 
         const handleMessage = (request: any) => {
-            if (request.type === 'screenshotTaken' && request.dataUrl) {
+            if (request.type === 'screenshotTaken' && request.dataUrl && canAttachFile) {
                 const dataUrlToFile = async (dataUrl: string, fileName: string): Promise<File> => {
                     const res = await fetch(dataUrl);
                     const blob = await res.blob();
@@ -183,13 +185,38 @@ const Conversation: React.FC = () => {
                 chrome.runtime.onMessage.removeListener(handleMessage);
             }
         };
-    }, []);
+    }, [canAttachFile]);
 
     const handlePasteContext = () => {
-        setPageContext({
-            title: 'Google AI Studio',
-            url: 'https://aistudio.google.com/u/1/apps/drive/11z7WgqCtAQYOdZfrr1WE-jHlykRLcD...',
-        });
+        const chrome = (window as any).chrome;
+        if (typeof chrome !== 'undefined' && chrome.tabs) {
+            chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs: any[]) => {
+                if (chrome.runtime.lastError) {
+                    console.error('AI Sidekick: Error querying tabs:', chrome.runtime.lastError.message);
+                    return;
+                }
+                if (tabs && tabs.length > 0 && tabs[0].url) {
+                    // Filter out the extension's own pages.
+                    if (tabs[0].url.startsWith('chrome-extension://')) {
+                         console.warn("AI Sidekick: Active tab is an extension page. Cannot get page context.");
+                         return;
+                    }
+                    setPageContext({
+                        title: tabs[0].title || 'No title',
+                        url: tabs[0].url,
+                    });
+                } else {
+                    console.error('AI Sidekick: Could not get active tab info.');
+                }
+            });
+        } else {
+            // Fallback for development outside of the extension
+            console.warn("AI Sidekick: Not in a Chrome extension environment. Using placeholder context.");
+            setPageContext({
+                title: 'Example Page Title',
+                url: 'https://example.com',
+            });
+        }
     };
 
     const removePageContext = () => {
@@ -230,28 +257,37 @@ const Conversation: React.FC = () => {
         removeAttachment();
         setPageContext(null);
 
-        if (!process.env.API_KEY) {
-            const errorMessage = `API key is not configured. Please ensure the API_KEY environment variable is set.`;
-            updateStreamingMessage(currentConversationId, aiMessageId, '', true, errorMessage);
-            setIsLoading(false);
-            return;
-        }
-
         try {
-            const history = getConversationHistory(currentConversationId);
-            const modelName = DEFAULT_MODELS[0].model;
-            const stream = await generateChatStream(promptForApi, history, modelName, process.env.API_KEY, fileToSend || undefined);
-            
-            let fullText = '';
-            for await (const chunk of stream) {
-                const chunkText = chunk.text;
-                fullText += chunkText;
-                updateStreamingMessage(currentConversationId, aiMessageId, chunkText, false);
+            if (activeModel.apiType === ApiType.OpenAI) {
+                if (!activeModel.apiKey || !activeModel.baseUrl) {
+                    throw new Error("OpenAI model is not configured with API Key and Base URL.");
+                }
+                const history = getConversationHistory(currentConversationId)
+                    .map(h => ({
+                        role: h.role === 'user' ? 'user' : 'assistant' as 'user' | 'assistant',
+                        content: h.parts[0].text
+                    }));
+
+                const stream = generateOpenAIChatStream(promptForApi, history, activeModel.apiKey, activeModel.baseUrl, activeModel.model, activeModel.temperature);
+                for await (const chunk of stream) {
+                    updateStreamingMessage(currentConversationId, aiMessageId, chunk, false);
+                }
+            } else { // Gemini
+                if (!process.env.API_KEY) {
+                    throw new Error("API key is not configured. Please ensure the API_KEY environment variable is set.");
+                }
+                const history = getConversationHistory(currentConversationId);
+                const stream = await generateChatStream(promptForApi, history, activeModel.model, process.env.API_KEY, fileToSend || undefined);
+                
+                for await (const chunk of stream) {
+                    const chunkText = chunk.text;
+                    updateStreamingMessage(currentConversationId, aiMessageId, chunkText, false);
+                }
             }
             updateStreamingMessage(currentConversationId, aiMessageId, '', true);
 
         } catch (error) {
-            console.error("Gemini API error:", error);
+            console.error("AI API error:", error);
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
             updateStreamingMessage(currentConversationId, aiMessageId, '', true, `Failed to get response: ${errorMessage}`);
         } finally {
@@ -260,7 +296,7 @@ const Conversation: React.FC = () => {
     }, [
         userInput, attachedFile, filePreview, quotedText, pageContext, 
         currentConversationId, addMessage, updateStreamingMessage, 
-        getConversationHistory
+        getConversationHistory, models, activeModel
     ]);
 
     useEffect(() => {
@@ -302,6 +338,16 @@ const Conversation: React.FC = () => {
         }
         handleSend({ prompt });
     };
+
+    if (!activeModel) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                <Icon name="CpuChipIcon" className="w-16 h-16 text-red-500 mb-4" />
+                <h2 className="text-xl font-bold text-gray-800">No AI Model Configured</h2>
+                <p className="text-gray-600 mt-2">Please go to Settings &gt; Manage AI Models to add and select a default model.</p>
+            </div>
+        )
+    }
 
     return (
         <div className="flex flex-col h-full bg-gray-50 text-gray-800">
@@ -394,17 +440,17 @@ const Conversation: React.FC = () => {
                         <div className="flex items-center justify-between mb-2 px-1">
                             <div className="flex items-center gap-1 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg px-3 py-1.5">
                                     <Icon name="CpuChipIcon" className="w-4 h-4" />
-                                    <span>{DEFAULT_MODELS[0].name}</span>
+                                    <span>{activeModel.name}</span>
                             </div>
                             <div className="flex items-center text-gray-500">
-                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-                                <button onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Attach file">
+                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" disabled={!canAttachFile} />
+                                <button onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Attach file" disabled={!canAttachFile} title={!canAttachFile ? "File attachments not supported for this model" : "Attach file"}>
                                     <Icon name="PaperClipIcon" className="w-5 h-5"/>
                                 </button>
                                 <button onClick={handlePasteContext} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Paste from clipboard">
                                     <Icon name="LinkIcon" className="w-5 h-5"/>
                                 </button>
-                                <button onClick={startScreenshot} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Take screenshot">
+                                <button onClick={startScreenshot} className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Take screenshot" disabled={!canAttachFile} title={!canAttachFile ? "Screenshots not supported for this model" : "Take screenshot"}>
                                     <Icon name="CameraIcon" className="w-5 h-5"/>
                                 </button>
                             </div>

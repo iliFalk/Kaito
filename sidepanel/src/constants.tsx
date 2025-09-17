@@ -1,5 +1,7 @@
+
 import React from 'react';
 import type { SearchEngine, Shortcut, AIModel } from './types';
+import { ApiType } from './types';
 import { GoogleIcon, PerplexityIcon, PhindIcon } from './components/Icons';
 
 export const PANEL_ROUTES = {
@@ -24,5 +26,12 @@ export const DEFAULT_SHORTCUTS: Shortcut[] = [
 ];
 
 export const DEFAULT_MODELS: AIModel[] = [
-  { id: 'gemini-2.5-flash', name: 'gemini-2.5-flash', model: 'gemini-2.5-flash', isDefault: true },
+  { 
+    id: 'gemini-2.5-flash', 
+    name: 'Gemini 2.5 Flash', 
+    model: 'gemini-2.5-flash', 
+    apiType: ApiType.Gemini,
+    supportImage: true,
+    isDefault: true 
+  },
 ];

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import type { Shortcut } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -19,10 +18,12 @@ const ShortcutModal: React.FC<{
     const isEditing = !!shortcut;
 
     React.useEffect(() => {
-        setTitle(shortcut?.title || '');
-        setPrompt(shortcut?.prompt || '');
-        setIcon(shortcut?.icon || ALL_ICONS[0]);
-    }, [shortcut]);
+        if (isOpen) {
+            setTitle(shortcut?.title || '');
+            setPrompt(shortcut?.prompt || '');
+            setIcon(shortcut?.icon || ALL_ICONS[0]);
+        }
+    }, [shortcut, isOpen]);
 
     if (!isOpen) return null;
 
@@ -105,7 +106,7 @@ const Options: React.FC = () => {
 
     const handleSaveShortcut = (shortcut: Shortcut) => {
         if (editingShortcut) {
-            setShortcuts(prev => prev.map(s => s.id === editingShortcut.id ? { ...shortcut, id: editingShortcut.id, isDefault: false } : s));
+            setShortcuts(prev => prev.map(s => s.id === editingShortcut.id ? { ...shortcut, id: editingShortcut.id, isDefault: s.isDefault } : s));
         } else {
             setShortcuts(prev => [...prev, { ...shortcut, isDefault: false }]);
         }
@@ -124,47 +125,77 @@ const Options: React.FC = () => {
     };
     
     return (
-        <div className="p-4 bg-gray-50 h-full text-gray-800">
-            <h1 className="text-xl font-bold mb-4">Quick Action Shortcuts</h1>
-            <p className="text-gray-600 mb-6">Customize and reorder your one-click prompts for the chat input.</p>
+        <div className="p-4 bg-gray-50 h-full text-gray-800 overflow-y-auto">
+             <div className="mb-6">
+                <h1 className="text-xl font-bold">Quick Action Shortcuts</h1>
+                <p className="text-gray-600">Customize and reorder your one-click prompts for the context menu.</p>
+             </div>
+             
+             <div className="mb-8">
+                <h2 className="text-lg font-bold mb-2 text-gray-700">Context Menu Preview</h2>
+                <p className="text-sm text-gray-500 mb-4">This is how the context menu will look when you select text on a webpage. The changes you make below will be reflected here live.</p>
+                <div className="bg-gray-200 p-8 rounded-lg flex justify-center items-center">
+                    <div className="bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-lg p-1 flex flex-col gap-1">
+                        <button title="Quote Text" className="group relative p-2 rounded-md text-gray-300 hover:bg-gray-600/70 hover:text-white transition-colors">
+                            <Icon name="ChatBubbleLeftRightIcon" className="w-5 h-5" />
+                        </button>
+                        
+                        <div className="h-px bg-gray-500/50 my-1 mx-1" />
 
-            <div className="space-y-2" onDragEnd={handleDrop}>
-                {shortcuts.map((shortcut, index) => (
-                    <div
-                        key={shortcut.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, index)}
-                        onDragEnter={(e) => handleDragEnter(e, index)}
-                        onDragOver={(e) => e.preventDefault()}
-                        className="flex items-center p-3 bg-white rounded-lg border border-gray-200 cursor-grab active:cursor-grabbing"
-                    >
-                        <Icon name="Bars3Icon" className="w-5 h-5 text-gray-400 mr-3" />
-                        <Icon name={shortcut.icon} className="w-6 h-6 text-blue-500 mr-4" />
-                        <span className="flex-1 font-medium">{shortcut.title}</span>
-                        {shortcut.isDefault ? (
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs bg-gray-200 text-gray-600 font-semibold px-2 py-1 rounded-full">Default</span>
-                                <button onClick={() => openModal(shortcut)} className="p-1 hover:bg-gray-100 rounded-full" aria-label="Edit shortcut">
-                                    <Icon name="PencilIcon" className="w-4 h-4 text-gray-500" />
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-2">
-                                <button onClick={() => openModal(shortcut)} className="p-1 hover:bg-gray-100 rounded-full" aria-label="Edit shortcut">
-                                    <Icon name="PencilIcon" className="w-4 h-4 text-gray-500" />
-                                </button>
-                                <button onClick={() => handleDelete(shortcut.id)} className="p-1 hover:bg-gray-100 rounded-full" aria-label="Delete shortcut">
-                                    <Icon name="TrashIcon" className="w-4 h-4 text-red-500" />
-                                </button>
-                            </div>
-                        )}
+                        {shortcuts.slice(0, 4).map(shortcut => (
+                            <button key={shortcut.id} title={shortcut.title} className="group relative p-2 rounded-md text-gray-300 hover:bg-gray-600/70 hover:text-white transition-colors">
+                                <Icon name={shortcut.icon} className="w-5 h-5" />
+                            </button>
+                        ))}
+                        
+                        <button title="Manage Shortcuts..." className="group relative p-2 rounded-md text-gray-300 hover:bg-gray-600/70 hover:text-white transition-colors">
+                            <Icon name="EllipsisHorizontalIcon" className="w-5 h-5" />
+                        </button>
                     </div>
-                ))}
+                </div>
+             </div>
+
+            <div>
+                <h2 className="text-lg font-bold mb-3 text-gray-700">Edit Shortcuts</h2>
+                <div className="space-y-2" onDragEnd={handleDrop}>
+                    {shortcuts.map((shortcut, index) => (
+                        <div
+                            key={shortcut.id}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, index)}
+                            onDragEnter={(e) => handleDragEnter(e, index)}
+                            onDragOver={(e) => e.preventDefault()}
+                            className="flex items-center p-3 bg-white rounded-lg border border-gray-200 cursor-grab active:cursor-grabbing"
+                        >
+                            <Icon name="Bars3Icon" className="w-5 h-5 text-gray-400 mr-3" />
+                            <Icon name={shortcut.icon} className="w-6 h-6 text-blue-500 mr-4" />
+                            <span className="flex-1 font-medium">{shortcut.title}</span>
+                            {shortcut.isDefault ? (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs bg-gray-200 text-gray-600 font-semibold px-2 py-1 rounded-full">Default</span>
+                                    <button onClick={() => openModal(shortcut)} className="p-1 hover:bg-gray-100 rounded-full" aria-label="Edit shortcut">
+                                        <Icon name="PencilIcon" className="w-4 h-4 text-gray-500" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <button onClick={() => openModal(shortcut)} className="p-1 hover:bg-gray-100 rounded-full" aria-label="Edit shortcut">
+                                        <Icon name="PencilIcon" className="w-4 h-4 text-gray-500" />
+                                    </button>
+                                    <button onClick={() => handleDelete(shortcut.id)} className="p-1 hover:bg-gray-100 rounded-full" aria-label="Delete shortcut">
+                                        <Icon name="TrashIcon" className="w-4 h-4 text-red-500" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                <button onClick={() => openModal(null)} className="mt-6 w-full py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-500 transition-colors">
+                    Create New Shortcut
+                </button>
             </div>
 
-            <button onClick={() => openModal(null)} className="mt-6 w-full py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-500 transition-colors">
-                Create New Shortcut
-            </button>
 
             <ShortcutModal
                 isOpen={isModalOpen}

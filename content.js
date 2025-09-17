@@ -6,7 +6,7 @@ const ICONS = {
     CheckCircleIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`,
     QuestionMarkCircleIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" /></svg>`,
     PencilIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`,
-    ChatBubbleLeftRightIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193l-3.722.534A9.003 9.003 0 0 1 12 15.75a9.003 9.003 0 0 1-4.057 1.082l-3.722-.534A2.002 2.002 0 0 1 2.25 15v-4.286c0-.97.616-1.813 1.5-2.097m16.5 0-.229-.08a2.002 2.002 0 0 0-2.053.228l-.934.934V5.625a2.25 2.25 0 0 0-2.25-2.25h-9a2.25 2.25 0 0 0-2.25 2.25v3.432l-.934-.934a2.002 2.002 0 0 0-2.053-.228l-.229.081m16.5 0c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193l-3.722.534A9.003 9.003 0 0 1 12 15.75a9.003 9.003 0 0 1-4.057 1.082l-3.722-.534A2.002 2.002 0 0 1 2.25 15v-4.286c0-.97.616-1.813 1.5-2.097" /></svg>`,
+    ChatBubbleLeftRightIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10 11h-4a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v6c0 2.667 -1.333 4.333 -4 5" /><path stroke-linecap="round" stroke-linejoin="round" d="M19 11h-4a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v6c0 2.667 -1.333 4.333 -4 5" /></svg>`,
     EllipsisHorizontalIcon: `<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" /></svg>`,
 };
 
@@ -30,7 +30,7 @@ async function showShortcutToolbar(range, text) {
         // "Quote" button
         const quoteButton = document.createElement('button');
         quoteButton.innerHTML = ICONS.ChatBubbleLeftRightIcon;
-        quoteButton.dataset.tooltip = 'Quote Text';
+        quoteButton.setAttribute('data-tooltip', 'Quote Text');
         quoteButton.onclick = (e) => {
             e.stopPropagation();
             chrome.runtime.sendMessage({ type: 'executeShortcut', shortcut: { id: 'quote', title: 'Quote' }, selectedText: text });
@@ -47,7 +47,7 @@ async function showShortcutToolbar(range, text) {
             shortcuts.slice(0, 4).forEach(shortcut => {
                 const button = document.createElement('button');
                 button.innerHTML = ICONS[shortcut.icon] || '';
-                button.dataset.tooltip = shortcut.title;
+                button.setAttribute('data-tooltip', shortcut.title);
                 button.onclick = (e) => {
                     e.stopPropagation();
                     chrome.runtime.sendMessage({ type: 'executeShortcut', shortcut, selectedText: text });
@@ -60,7 +60,7 @@ async function showShortcutToolbar(range, text) {
         // "More Actions" button for settings
         const moreButton = document.createElement('button');
         moreButton.innerHTML = ICONS.EllipsisHorizontalIcon;
-        moreButton.dataset.tooltip = 'Manage Shortcuts...';
+        moreButton.setAttribute('data-tooltip', 'Manage Shortcuts...');
         moreButton.onclick = (e) => {
             e.stopPropagation();
             chrome.runtime.sendMessage({ type: 'executeShortcut', shortcut: { id: 'settings' }, selectedText: '' });
