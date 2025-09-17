@@ -26,7 +26,7 @@ const SimpleMarkdown: React.FC<{ content: string }> = React.memo(({ content }) =
 const AIMessage: React.FC<{ message: Message }> = ({ message }) => (
     <div className="flex items-start gap-3">
         <NeuralAnimation className="flex-shrink-0 w-8 h-8" />
-        <div className="flex-1 bg-[#3c3c3c] rounded-lg p-3 max-w-[calc(100%-3rem)]">
+        <div className={`flex-1 bg-[#3c3c3c] rounded-lg p-3 max-w-[calc(100%-3rem)] ${message.isStreaming ? 'streaming-border' : ''}`}>
             <div className="text-gray-100 leading-relaxed">
                 {message.isStreaming && message.text.length === 0 ? (
                     <div className="flex items-center gap-2">
@@ -352,6 +352,36 @@ const Conversation: React.FC = () => {
 
     return (
         <div className="flex flex-col h-full text-gray-200">
+            <style>{`
+                @keyframes spin {
+                    to { --angle: 360deg; }
+                }
+
+                @property --angle {
+                    syntax: '<angle>';
+                    initial-value: 0deg;
+                    inherits: false;
+                }
+
+                .streaming-border {
+                    /* Thicker border */
+                    border: 3px solid transparent;
+                    
+                    /* 
+                     * Use a multi-layer background to create a gradient border that respects border-radius.
+                     * 1. The first layer is a solid color for the content, clipped to the inside of the border.
+                     * 2. The second layer is the animated conic gradient for the border itself.
+                     */
+                    background: 
+                        linear-gradient(#3c3c3c, #3c3c3c) padding-box,
+                        conic-gradient(from var(--angle), #3c3c3c, #5a5a5a, #4d90fe, #5a5a5a, #3c3c3c) border-box;
+                    
+                    animation: spin 2.5s linear infinite;
+                    
+                    /* Apply a glowing effect using a drop-shadow filter, which follows the element's shape. */
+                    filter: drop-shadow(0 0 8px rgba(77, 144, 254, 0.7));
+                }
+            `}</style>
             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                 {messages.length === 0 && (
                      <div className="flex flex-col items-center justify-center h-full text-center">
