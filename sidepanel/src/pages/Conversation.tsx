@@ -6,9 +6,10 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { DEFAULT_MODELS, PANEL_ROUTES, DEFAULT_SHORTCUTS } from '../constants';
 import { generateChatStream } from '../services/geminiService';
 import { generateOpenAIChatStream } from '../services/openAIService';
-import { UserIcon, Icon } from '../components/Icons';
+import { Icon } from '../components/Icons';
 import { useAppContext } from '../context/AppContext';
 import NeuralAnimation from '../components/NeuralAnimation';
+import TypingKeyboardIcon from '../components/TypingKeyboardIcon';
 
 // Basic markdown to HTML renderer
 const SimpleMarkdown: React.FC<{ content: string }> = React.memo(({ content }) => {
@@ -64,8 +65,8 @@ const UserMessage: React.FC<{ message: Message }> = ({ message }) => (
                  </div>
              )}
         </div>
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#7a7a7a] flex items-center justify-center order-2">
-            <UserIcon className="w-5 h-5 text-gray-300" />
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-black flex items-center justify-center order-2">
+            <TypingKeyboardIcon className="w-full h-full p-1" />
         </div>
     </div>
 );
