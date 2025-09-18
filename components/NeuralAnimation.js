@@ -194,7 +194,7 @@ const NeuralAnimation = ({ className }) => {
     });
 
     // Sphere Geometry & Mesh
-    const sphereGeometry = new THREE.SphereGeometry(1.8, 128, 128);
+    const sphereGeometry = new THREE.SphereGeometry(2.2, 128, 128);
     const vortex = new THREE.Mesh(sphereGeometry, vortexMaterial);
     scene.add(vortex);
 
@@ -240,7 +240,7 @@ const NeuralAnimation = ({ className }) => {
     };
   }, []);
 
-  return React.createElement('div', { ref: mountRef, className: className ?? "w-9 h-9" });
+  return React.createElement('div', { ref: mountRef, className: className ?? "w-12 h-12" });
 };
 
 export default NeuralAnimation;
