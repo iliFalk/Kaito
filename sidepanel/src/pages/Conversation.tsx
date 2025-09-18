@@ -356,6 +356,12 @@ const Conversation: React.FC = () => {
                 @keyframes spin {
                     to { --angle: 360deg; }
                 }
+                
+                @keyframes pulse-glow {
+                    0% { filter: drop-shadow(0 0 6px rgba(0, 80, 207, 0.6)); }
+                    50% { filter: drop-shadow(0 0 14px rgba(0, 80, 207, 0.9)); }
+                    100% { filter: drop-shadow(0 0 6px rgba(0, 80, 207, 0.6)); }
+                }
 
                 @property --angle {
                     syntax: '<angle>';
@@ -367,9 +373,8 @@ const Conversation: React.FC = () => {
                     border: 3px solid transparent;
                     background: 
                         linear-gradient(var(--layer-01), var(--layer-01)) padding-box,
-                        conic-gradient(from var(--angle), var(--layer-01), var(--layer-02), var(--interactive), var(--layer-02), var(--layer-01)) border-box;
-                    animation: spin 2.5s linear infinite;
-                    filter: drop-shadow(0 0 8px rgba(15, 98, 254, 0.7));
+                        conic-gradient(from var(--angle), var(--layer-01) 40%, var(--interactive), var(--layer-01) 60%) border-box;
+                    animation: spin 2.5s linear infinite, pulse-glow 2s ease-in-out infinite;
                 }
             `}</style>
             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
