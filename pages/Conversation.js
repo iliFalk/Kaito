@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sender, ApiType } from '../types.js';
@@ -19,8 +17,8 @@ const SimpleMarkdown = React.memo(({ content }) => {
     const html = content
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/```([\s\S]*?)```/g, (_, code) => `<pre class="bg-[#2b2b2b] p-2 rounded-md my-2 overflow-x-auto text-sm"><code>${code.trim()}</code></pre>`)
-      .replace(/`([^`]+)`/g, '<code class="bg-[#5a5a5a] text-white rounded px-1 py-0.5 text-sm">$1</code>')
+      .replace(/```([\s\S]*?)```/g, (_, code) => `<pre class="bg-background p-2 rounded-md my-2 overflow-x-auto text-sm"><code>${code.trim()}</code></pre>`)
+      .replace(/`([^`]+)`/g, '<code class="bg-layer-02 text-text-primary rounded px-1 py-0.5 text-sm">$1</code>')
       .replace(/\n/g, '<br />');
     
     return React.createElement('div', { className: "prose prose-sm max-w-none", dangerouslySetInnerHTML: { __html: html } });
@@ -29,18 +27,18 @@ const SimpleMarkdown = React.memo(({ content }) => {
 const AIMessage = ({ message }) => (
     React.createElement('div', { className: "flex items-start gap-3" },
         React.createElement(NeuralAnimation, { className: "flex-shrink-0 w-8 h-8" }),
-        React.createElement('div', { className: `flex-1 bg-[#3c3c3c] rounded-lg p-3 max-w-[calc(100%-3rem)] ${message.isStreaming ? 'streaming-border' : ''}` },
-            React.createElement('div', { className: "text-gray-100 leading-relaxed" },
+        React.createElement('div', { className: `flex-1 bg-layer-01 rounded-lg p-3 max-w-[calc(100%-3rem)] ${message.isStreaming ? 'streaming-border' : ''}` },
+            React.createElement('div', { className: "text-text-primary leading-relaxed" },
                 message.isStreaming && message.text.length === 0 ? (
                     React.createElement('div', { className: "flex items-center gap-2" },
-                        React.createElement('div', { className: "w-2 h-2 bg-blue-400 rounded-full animate-pulse" }),
-                        React.createElement('div', { className: "w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-75" }),
-                        React.createElement('div', { className: "w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-150" })
+                        React.createElement('div', { className: "w-2 h-2 bg-interactive rounded-full animate-pulse" }),
+                        React.createElement('div', { className: "w-2 h-2 bg-interactive rounded-full animate-pulse delay-75" }),
+                        React.createElement('div', { className: "w-2 h-2 bg-interactive rounded-full animate-pulse delay-150" })
                     )
                 ) : (
                     React.createElement(SimpleMarkdown, { content: message.text })
                 ),
-                message.error && React.createElement('p', { className: "text-red-500 mt-2" }, message.error)
+                message.error && React.createElement('p', { className: "text-text-error mt-2" }, message.error)
             )
         )
     )
@@ -48,27 +46,27 @@ const AIMessage = ({ message }) => (
 
 const UserMessage = ({ message }) => (
     React.createElement('div', { className: "flex items-start gap-3 justify-end" },
-        React.createElement('div', { className: "flex-1 bg-blue-800 rounded-lg p-3 max-w-[calc(100%-3rem)] order-1" },
-             React.createElement('p', { className: "text-white leading-relaxed" }, message.text),
+        React.createElement('div', { className: "flex-1 bg-interactive-active rounded-lg p-3 max-w-[calc(100%-3rem)] order-1" },
+             React.createElement('p', { className: "text-text-on-color leading-relaxed" }, message.text),
              message.quotedText && (
-                 React.createElement('div', { className: "mt-2 p-2 border-l-2 border-blue-600 bg-blue-900/50 rounded-r-md" },
-                    React.createElement('p', { className: "text-xs text-blue-100 italic truncate" }, message.quotedText)
+                 React.createElement('div', { className: "mt-2 p-2 border-l-2 border-interactive bg-interactive-hover/50 rounded-r-md" },
+                    React.createElement('p', { className: "text-xs text-interactive-secondary italic truncate" }, message.quotedText)
                  )
              ),
              message.filePreview && (
                  React.createElement('div', { className: "mt-2" },
                     React.createElement('img', { src: message.filePreview, alt: message.fileName, className: "max-h-32 rounded-md" }),
-                    React.createElement('p', { className: "text-xs text-blue-100 mt-1" }, message.fileName)
+                    React.createElement('p', { className: "text-xs text-interactive-secondary mt-1" }, message.fileName)
                  )
              ),
              message.pageContext && (
-                 React.createElement('div', { className: "mt-2 p-2 border-l-2 border-blue-600 bg-blue-900/50 rounded-r-md" },
-                    React.createElement('p', { className: "text-xs text-blue-100 font-semibold" }, message.pageContext.title),
-                    React.createElement('p', { className: "text-xs text-blue-100 italic truncate" }, message.pageContext.url)
+                 React.createElement('div', { className: "mt-2 p-2 border-l-2 border-interactive bg-interactive-hover/50 rounded-r-md" },
+                    React.createElement('p', { className: "text-xs text-interactive-secondary font-semibold" }, message.pageContext.title),
+                    React.createElement('p', { className: "text-xs text-interactive-secondary italic truncate" }, message.pageContext.url)
                  )
              )
         ),
-        React.createElement('div', { className: "flex-shrink-0 w-8 h-8 rounded-full bg-black flex items-center justify-center order-2" },
+        React.createElement('div', { className: "flex-shrink-0 w-8 h-8 rounded-full bg-layer-03 flex items-center justify-center order-2" },
             React.createElement(TypingKeyboardIcon, { className: "w-full h-full p-1" })
         )
     )
@@ -346,15 +344,15 @@ const Conversation = () => {
     if (!activeModel) {
         return (
             React.createElement('div', { className: "flex flex-col items-center justify-center h-full text-center p-4" },
-                React.createElement(Icon, { name: "CpuChipIcon", className: "w-16 h-16 text-red-500 mb-4" }),
-                React.createElement('h2', { className: "text-xl font-bold text-gray-800" }, "No AI Model Configured"),
-                React.createElement('p', { className: "text-gray-600 mt-2" }, "Please go to Settings > Manage AI Models to add and select a default model.")
+                React.createElement(Icon, { name: "CpuChipIcon", className: "w-16 h-16 text-support-error mb-4" }),
+                React.createElement('h2', { className: "text-xl font-bold text-text-primary" }, "No AI Model Configured"),
+                React.createElement('p', { className: "text-text-secondary mt-2" }, "Please go to Settings > Manage AI Models to add and select a default model.")
             )
         )
     }
 
     return (
-        React.createElement('div', { className: "flex flex-col h-full text-gray-200" },
+        React.createElement('div', { className: "flex flex-col h-full" },
             React.createElement('style', null, `
                 @keyframes spin {
                     to { --angle: 360deg; }
@@ -367,29 +365,19 @@ const Conversation = () => {
                 }
 
                 .streaming-border {
-                    /* Thicker border */
                     border: 3px solid transparent;
-                    
-                    /* 
-                     * Use a multi-layer background to create a gradient border that respects border-radius.
-                     * 1. The first layer is a solid color for the content, clipped to the inside of the border.
-                     * 2. The second layer is the animated conic gradient for the border itself.
-                     */
                     background: 
-                        linear-gradient(#3c3c3c, #3c3c3c) padding-box,
-                        conic-gradient(from var(--angle), #3c3c3c, #5a5a5a, #4d90fe, #5a5a5a, #3c3c3c) border-box;
-                    
+                        linear-gradient(var(--layer-01), var(--layer-01)) padding-box,
+                        conic-gradient(from var(--angle), var(--layer-01), var(--layer-02), var(--interactive), var(--layer-02), var(--layer-01)) border-box;
                     animation: spin 2.5s linear infinite;
-                    
-                    /* Apply a glowing effect using a drop-shadow filter, which follows the element's shape. */
-                    filter: drop-shadow(0 0 8px rgba(77, 144, 254, 0.7));
+                    filter: drop-shadow(0 0 8px rgba(15, 98, 254, 0.7));
                 }
             `),
             React.createElement('div', { className: "flex-1 p-4 space-y-4 overflow-y-auto" },
                 messages.length === 0 && (
                      React.createElement('div', { className: "flex flex-col items-center justify-center h-full text-center" },
                         React.createElement(NeuralAnimation, { className: "w-32 h-32" }),
-                        React.createElement('p', { className: "mt-4 text-lg font-medium text-gray-400" }, "How can I help you today?")
+                        React.createElement('p', { className: "mt-4 text-lg font-medium text-text-secondary" }, "How can I help you today?")
                     )
                 ),
                 messages.map(message =>
@@ -402,114 +390,114 @@ const Conversation = () => {
                 React.createElement('div', { ref: messagesEndRef })
             ),
             React.createElement('div', { className: "p-3 bg-transparent" },
-                React.createElement('div', { className: `bg-[#3c3c3c] rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.25)] p-2 border ${attachedFile || pageContext ? 'border-blue-700' : 'border-[#5a5a5a]'}` },
+                React.createElement('div', { className: `bg-layer-01 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.25)] p-2 border ${attachedFile || pageContext ? 'border-interactive' : 'border-border-strong'}` },
                     attachedFile ? (
                         React.createElement('div', null,
                             React.createElement('div', { className: "flex items-center justify-between p-1" },
                                 React.createElement('div', { className: "flex items-center gap-3" },
-                                    React.createElement('div', { className: "w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-lg border-2 border-dashed border-[#7a7a7a] bg-[#5a5a5a]" },
+                                    React.createElement('div', { className: "w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-lg border-2 border-dashed border-layer-03 bg-layer-02" },
                                         React.createElement('div', { className: "text-center" },
-                                            React.createElement('svg', { className: "w-6 h-6 mx-auto text-blue-500", xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", strokeWidth: "1.5", stroke: "currentColor" },
+                                            React.createElement('svg', { className: "w-6 h-6 mx-auto text-interactive", xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", strokeWidth: "1.5", stroke: "currentColor" },
                                                 React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", d: "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9Z" })
                                             ),
-                                            React.createElement('p', { className: "text-[9px] font-bold text-blue-500" }, attachedFile.name.split('.').pop()?.toUpperCase())
+                                            React.createElement('p', { className: "text-[9px] font-bold text-interactive" }, attachedFile.name.split('.').pop()?.toUpperCase())
                                         )
                                     ),
-                                    React.createElement('span', { className: "text-sm font-medium text-gray-200 truncate max-w-xs" }, attachedFile.name)
+                                    React.createElement('span', { className: "text-sm font-medium text-text-primary truncate max-w-xs" }, attachedFile.name)
                                 ),
-                                React.createElement('button', { onClick: removeAttachment, className: "p-1.5 text-gray-400 hover:text-gray-200 rounded-full hover:bg-[#5a5a5a]" },
+                                React.createElement('button', { onClick: removeAttachment, className: "p-1.5 text-text-secondary hover:text-text-primary rounded-full hover:bg-layer-02" },
                                     React.createElement(Icon, { name: "TrashIcon", className: "w-5 h-5" })
                                 )
                             ),
                             React.createElement('div', { className: "mt-2 mb-2 flex items-center gap-2 px-1" },
-                                React.createElement('button', { onClick: () => handleFileAction("Extract text from the image and translate it to Simplified Chinese"), className: "flex items-center gap-1 text-sm bg-blue-900/70 text-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-800 font-medium" },
+                                React.createElement('button', { onClick: () => handleFileAction("Extract text from the image and translate it to Simplified Chinese"), className: "flex items-center gap-1 text-sm bg-interactive-active/70 text-interactive-secondary px-3 py-1.5 rounded-lg hover:bg-interactive-active font-medium" },
                                     React.createElement('span', null, "Extract & Translate:"),
                                     React.createElement('span', { className: "font-semibold" }, "简体中文"),
                                     React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 20 20", fill: "currentColor", className: "w-4 h-4" }, React.createElement('path', { fillRule: "evenodd", d: "M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z", clipRule: "evenodd" }))
                                 ),
-                                React.createElement('button', { onClick: () => handleFileAction("Extract all text from this image"), className: "text-sm bg-blue-900/70 text-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-800 font-medium" }, "Grab Text"),
-                                React.createElement('button', { onClick: () => handleFileAction("Describe this image"), className: "text-sm bg-blue-900/70 text-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-800 font-medium" }, "Describe")
+                                React.createElement('button', { onClick: () => handleFileAction("Extract all text from this image"), className: "text-sm bg-interactive-active/70 text-interactive-secondary px-3 py-1.5 rounded-lg hover:bg-interactive-active font-medium" }, "Grab Text"),
+                                React.createElement('button', { onClick: () => handleFileAction("Describe this image"), className: "text-sm bg-interactive-active/70 text-interactive-secondary px-3 py-1.5 rounded-lg hover:bg-interactive-active font-medium" }, "Describe")
                             ),
-                            React.createElement('hr', { className: "border-[#5a5a5a]" })
+                            React.createElement('hr', { className: "border-border-strong" })
                         )
                     ) : pageContext ? (
                         React.createElement('div', null,
-                            React.createElement('div', { className: "bg-[#5a5a5a]/80 rounded-lg p-2.5 mb-2" },
+                            React.createElement('div', { className: "bg-layer-02/80 rounded-lg p-2.5 mb-2" },
                                 React.createElement('div', { className: "flex items-start" },
-                                    React.createElement(Icon, { name: "LinkIcon", className: "w-5 h-5 text-gray-400 mr-2.5 mt-0.5 flex-shrink-0" }),
+                                    React.createElement(Icon, { name: "LinkIcon", className: "w-5 h-5 text-text-secondary mr-2.5 mt-0.5 flex-shrink-0" }),
                                     React.createElement('div', { className: "flex-1 min-w-0" },
-                                        React.createElement('p', { className: "font-semibold text-sm text-gray-200 leading-tight" }, pageContext.title),
-                                        React.createElement('p', { className: "text-xs text-gray-400 truncate leading-tight mt-0.5" }, pageContext.url)
+                                        React.createElement('p', { className: "font-semibold text-sm text-text-primary leading-tight" }, pageContext.title),
+                                        React.createElement('p', { className: "text-xs text-text-secondary truncate leading-tight mt-0.5" }, pageContext.url)
                                     ),
-                                    React.createElement('button', { onClick: removePageContext, className: "ml-2 p-1 text-gray-400 hover:text-gray-200 rounded-full hover:bg-[#7a7a7a] flex-shrink-0" },
+                                    React.createElement('button', { onClick: removePageContext, className: "ml-2 p-1 text-text-secondary hover:text-text-primary rounded-full hover:bg-layer-03 flex-shrink-0" },
                                         React.createElement(Icon, { name: "XMarkIcon", className: "w-4 h-4" })
                                     )
                                 )
                             ),
                             React.createElement('div', { className: "flex items-center gap-2 px-1 mb-2" },
-                                React.createElement('button', { onClick: () => handleContextAction('Questions'), className: "text-sm bg-blue-900/70 text-blue-200 px-3 py-1 rounded-full hover:bg-blue-800 font-medium" }, "Questions"),
-                                React.createElement('button', { onClick: () => handleContextAction('Key Points'), className: "text-sm bg-blue-900/70 text-blue-200 px-3 py-1 rounded-full hover:bg-blue-800 font-medium" }, "Key Points"),
-                                React.createElement('button', { onClick: () => handleContextAction('Summarize'), className: "text-sm bg-blue-900/70 text-blue-200 px-3 py-1 rounded-full hover:bg-blue-800 font-medium" }, "Summarize")
+                                React.createElement('button', { onClick: () => handleContextAction('Questions'), className: "text-sm bg-interactive-active/70 text-interactive-secondary px-3 py-1 rounded-full hover:bg-interactive-active font-medium" }, "Questions"),
+                                React.createElement('button', { onClick: () => handleContextAction('Key Points'), className: "text-sm bg-interactive-active/70 text-interactive-secondary px-3 py-1 rounded-full hover:bg-interactive-active font-medium" }, "Key Points"),
+                                React.createElement('button', { onClick: () => handleContextAction('Summarize'), className: "text-sm bg-interactive-active/70 text-interactive-secondary px-3 py-1 rounded-full hover:bg-interactive-active font-medium" }, "Summarize")
                             ),
-                            React.createElement('hr', { className: "border-[#5a5a5a]" })
+                            React.createElement('hr', { className: "border-border-strong" })
                         )
                     ) : quotedText ? (
-                        React.createElement('div', { className: "bg-[#5a5a5a]/80 rounded-lg p-2.5 mb-2" },
+                        React.createElement('div', { className: "bg-layer-02/80 rounded-lg p-2.5 mb-2" },
                             React.createElement('div', { className: "flex items-start" },
-                                React.createElement(Icon, { name: "ChatBubbleLeftRightIcon", className: "w-5 h-5 text-gray-400 mr-2.5 mt-0.5 flex-shrink-0" }),
+                                React.createElement(Icon, { name: "ChatBubbleLeftRightIcon", className: "w-5 h-5 text-text-secondary mr-2.5 mt-0.5 flex-shrink-0" }),
                                 React.createElement('div', { className: "flex-1 min-w-0" },
-                                    React.createElement('p', { className: "text-sm text-gray-300 italic truncate" }, `"${quotedText}"`)
+                                    React.createElement('p', { className: "text-sm text-text-secondary italic truncate" }, `"${quotedText}"`)
                                 ),
-                                React.createElement('button', { onClick: () => setQuotedText(''), className: "ml-2 p-1 text-gray-400 hover:text-gray-200 rounded-full hover:bg-[#7a7a7a] flex-shrink-0" },
+                                React.createElement('button', { onClick: () => setQuotedText(''), className: "ml-2 p-1 text-text-secondary hover:text-text-primary rounded-full hover:bg-layer-03 flex-shrink-0" },
                                     React.createElement(Icon, { name: "XMarkIcon", className: "w-4 h-4" })
                                 )
                             )
                         )
                     ) : (
                         React.createElement('div', { className: "flex items-center justify-between mb-2 px-1" },
-                            React.createElement('div', { className: "flex items-center gap-1 text-sm font-semibold text-gray-300 bg-[#5a5a5a] rounded-lg px-3 py-1.5" },
+                            React.createElement('div', { className: "flex items-center gap-1 text-sm font-semibold text-text-secondary bg-layer-02 rounded-lg px-3 py-1.5" },
                                 React.createElement(Icon, { name: "CpuChipIcon", className: "w-4 h-4" }),
                                 React.createElement('span', null, activeModel.name)
                             ),
-                            React.createElement('div', { className: "flex items-center text-gray-400" },
+                            React.createElement('div', { className: "flex items-center text-text-secondary" },
                                 React.createElement('input', { type: "file", ref: fileInputRef, onChange: handleFileChange, className: "hidden", accept: "image/*", disabled: !canAttachFile }),
-                                React.createElement('button', { onClick: () => fileInputRef.current?.click(), className: "p-2 hover:bg-[#5a5a5a] rounded-lg disabled:opacity-50 disabled:cursor-not-allowed", 'aria-label': "Attach file", disabled: !canAttachFile, title: !canAttachFile ? "File attachments not supported for this model" : "Attach file" },
+                                React.createElement('button', { onClick: () => fileInputRef.current?.click(), className: "p-2 hover:bg-layer-02 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed", 'aria-label': "Attach file", disabled: !canAttachFile, title: !canAttachFile ? "File attachments not supported for this model" : "Attach file" },
                                     React.createElement(Icon, { name: "PaperClipIcon", className: "w-5 h-5" })
                                 ),
-                                React.createElement('button', { onClick: handlePasteContext, className: "p-2 hover:bg-[#5a5a5a] rounded-lg", 'aria-label': "Paste from clipboard" },
+                                React.createElement('button', { onClick: handlePasteContext, className: "p-2 hover:bg-layer-02 rounded-lg", 'aria-label': "Paste from clipboard" },
                                     React.createElement(Icon, { name: "LinkIcon", className: "w-5 h-5" })
                                 ),
-                                React.createElement('button', { onClick: startScreenshot, className: "p-2 hover:bg-[#5a5a5a] rounded-lg disabled:opacity-50 disabled:cursor-not-allowed", 'aria-label': "Take screenshot", disabled: !canAttachFile, title: !canAttachFile ? "Screenshots not supported for this model" : "Take screenshot" },
+                                React.createElement('button', { onClick: startScreenshot, className: "p-2 hover:bg-layer-02 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed", 'aria-label': "Take screenshot", disabled: !canAttachFile, title: !canAttachFile ? "Screenshots not supported for this model" : "Take screenshot" },
                                     React.createElement(Icon, { name: "CameraIcon", className: "w-5 h-5" })
                                 )
                             )
                         )
                     ),
-                    React.createElement('div', { className: `flex items-end gap-2 ${!attachedFile && !pageContext && !quotedText ? 'border-t border-[#5a5a5a] pt-2' : ''}` },
+                    React.createElement('div', { className: `flex items-end gap-2 ${!attachedFile && !pageContext && !quotedText ? 'border-t border-border-strong pt-2' : ''}` },
                         React.createElement('textarea', {
                             ref: textareaRef,
                             value: userInput,
                             onChange: e => setUserInput(e.target.value),
                             onKeyDown: e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } },
                             placeholder: "Enter message...",
-                            className: "w-full bg-[#3c3c3c] p-2 text-base text-gray-100 placeholder-gray-500 resize-none focus:ring-0 focus:outline-none max-h-40",
+                            className: "w-full bg-layer-01 p-2 text-base text-text-primary placeholder-text-placeholder resize-none focus:ring-0 focus:outline-none max-h-40",
                             rows: 1,
                             disabled: isLoading
                         }),
                         React.createElement('div', { className: "relative flex-shrink-0", ref: actionsDropdownRef },
-                            React.createElement('div', { className: "flex items-center bg-[#3c3c3c] rounded-xl shadow-sm border border-[#5a5a5a]/80 overflow-hidden" },
+                            React.createElement('div', { className: "flex items-center bg-layer-01 rounded-xl shadow-sm border border-border-strong/80 overflow-hidden" },
                                 React.createElement('button', {
                                     onClick: () => handleSend(),
                                     disabled: isLoading || (!userInput.trim() && !attachedFile && !quotedText),
-                                    className: "p-2.5 text-blue-500 disabled:text-gray-500 hover:bg-[#5a5a5a] transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400",
+                                    className: "p-2.5 text-interactive disabled:text-text-placeholder hover:bg-layer-02 transition-colors focus:outline-none focus:ring-2 focus:ring-focus",
                                     'aria-label': "Send message"
                                 },
                                     React.createElement(Icon, { name: "PaperAirplaneIcon", className: "w-5 h-5" })
                                 ),
-                                React.createElement('div', { className: "w-px self-stretch bg-[#5a5a5a]/80" }),
+                                React.createElement('div', { className: "w-px self-stretch bg-border-strong/80" }),
                                 React.createElement('button', {
                                     onClick: () => setIsActionsDropdownOpen(prev => !prev),
-                                    className: "p-2 text-gray-400 hover:bg-[#5a5a5a] transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400",
+                                    className: "p-2 text-text-secondary hover:bg-layer-02 transition-colors focus:outline-none focus:ring-2 focus:ring-focus",
                                     'aria-label': "Quick actions"
                                 },
                                     React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", className: "w-4 h-4", viewBox: "0 0 20 20", fill: "currentColor" },
@@ -518,7 +506,7 @@ const Conversation = () => {
                                 )
                             ),
                             isActionsDropdownOpen && (
-                                React.createElement('div', { className: "absolute bottom-full mb-2 w-56 bg-[#5a5a5a] rounded-lg shadow-lg border border-[#7a7a7a] z-10 right-0" },
+                                React.createElement('div', { className: "absolute bottom-full mb-2 w-56 bg-layer-02 rounded-lg shadow-lg border border-border-strong z-10 right-0" },
                                     React.createElement('ul', { className: "py-1 max-h-48 overflow-y-auto" },
                                         shortcuts.map(shortcut => (
                                             React.createElement('li', { key: shortcut.id },
@@ -529,9 +517,9 @@ const Conversation = () => {
                                                         setIsActionsDropdownOpen(false);
                                                         textareaRef.current?.focus();
                                                     },
-                                                    className: "w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-[#7a7a7a] flex items-center gap-3"
+                                                    className: "w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-layer-03 flex items-center gap-3"
                                                 },
-                                                    React.createElement(Icon, { name: shortcut.icon, className: "w-5 h-5 text-gray-400" }),
+                                                    React.createElement(Icon, { name: shortcut.icon, className: "w-5 h-5 text-text-secondary" }),
                                                     React.createElement('span', { className: "truncate" }, shortcut.title)
                                                 )
                                             )

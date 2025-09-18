@@ -17,7 +17,7 @@ const SimpleMarkdown: React.FC<{ content: string }> = React.memo(({ content }) =
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/```([\s\S]*?)```/g, (_, code) => `<pre class="bg-background p-2 rounded-md my-2 overflow-x-auto text-sm"><code>${code.trim()}</code></pre>`)
-      .replace(/`([^`]+)`/g, '<code class="bg-layer-02 text-text-on-color rounded px-1 py-0.5 text-sm">$1</code>')
+      .replace(/`([^`]+)`/g, '<code class="bg-layer-02 text-text-primary rounded px-1 py-0.5 text-sm">$1</code>')
       .replace(/\n/g, '<br />');
     
     return <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: html }} />;
@@ -65,7 +65,7 @@ const UserMessage: React.FC<{ message: Message }> = ({ message }) => (
                  </div>
              )}
         </div>
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-black flex items-center justify-center order-2">
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-layer-03 flex items-center justify-center order-2">
             <TypingKeyboardIcon className="w-full h-full p-1" />
         </div>
     </div>
