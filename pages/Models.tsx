@@ -78,70 +78,70 @@ const AIModelModal: React.FC<{
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-            <div className="bg-[#3c3c3c] rounded-lg shadow-xl w-full max-w-lg border border-[#5a5a5a] flex flex-col max-h-[90vh]">
-                <div className="p-4 border-b border-[#5a5a5a]">
-                    <h2 className="text-lg font-semibold text-gray-100">{modelToEdit ? 'Edit AI Model' : 'Add New Model'}</h2>
+            <div className="bg-layer-01 rounded-lg shadow-xl w-full max-w-lg border border-border-strong flex flex-col max-h-[90vh]">
+                <div className="p-4 border-b border-border-strong">
+                    <h2 className="text-lg font-semibold text-text-primary">{modelToEdit ? 'Edit AI Model' : 'Add New Model'}</h2>
                 </div>
                 <div className="p-4 space-y-4 overflow-y-auto">
                     <div>
-                        <label htmlFor="apiType" className="block text-sm font-medium text-gray-400 mb-1">API Type</label>
+                        <label htmlFor="apiType" className="block text-sm font-medium text-text-secondary mb-1">API Type</label>
                         <select id="apiType" value={apiType} onChange={e => setApiType(e.target.value as ApiType)}
-                            className="w-full bg-[#5a5a5a] text-gray-100 rounded-md border-[#7a7a7a] focus:ring-blue-500 focus:border-blue-500">
+                            className="w-full bg-layer-02 text-text-primary rounded-md border-border-strong focus:ring-interactive focus:border-interactive">
                             <option value={ApiType.Gemini}>Google Gemini</option>
                             <option value={ApiType.OpenAI}>OpenAI Compatible</option>
                         </select>
                     </div>
                     <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-400 mb-1">Name</label>
+                        <label htmlFor="name" className="block text-sm font-medium text-text-secondary mb-1">Name</label>
                         <input type="text" id="name" value={name} onChange={e => setName(e.target.value)}
-                               className="w-full bg-[#5a5a5a] text-gray-100 rounded-md border-[#7a7a7a] focus:ring-blue-500 focus:border-blue-500" 
+                               className="w-full bg-layer-02 text-text-primary rounded-md border-border-strong focus:ring-interactive focus:border-interactive" 
                                placeholder="e.g., Gemini Flash" />
                     </div>
                     {apiType === ApiType.OpenAI && (
                         <>
                            <div>
-                                <label htmlFor="baseUrl" className="block text-sm font-medium text-gray-400 mb-1">API Base URL</label>
+                                <label htmlFor="baseUrl" className="block text-sm font-medium text-text-secondary mb-1">API Base URL</label>
                                 <input type="text" id="baseUrl" value={baseUrl} onChange={e => setBaseUrl(e.target.value)}
-                                          className="w-full bg-[#5a5a5a] text-gray-100 rounded-md border-[#7a7a7a] focus:ring-blue-500 focus:border-blue-500"
+                                          className="w-full bg-layer-02 text-text-primary rounded-md border-border-strong focus:ring-interactive focus:border-interactive"
                                           placeholder="e.g., https://api.openai.com/v1" />
                             </div>
                             <div>
-                                <label htmlFor="apiKey" className="block text-sm font-medium text-gray-400 mb-1">API Key</label>
+                                <label htmlFor="apiKey" className="block text-sm font-medium text-text-secondary mb-1">API Key</label>
                                 <input type="password" id="apiKey" value={apiKey} onChange={e => setApiKey(e.target.value)}
-                                          className="w-full bg-[#5a5a5a] text-gray-100 rounded-md border-[#7a7a7a] focus:ring-blue-500 focus:border-blue-500"
+                                          className="w-full bg-layer-02 text-text-primary rounded-md border-border-strong focus:ring-interactive focus:border-interactive"
                                           placeholder="Enter your API key" />
                             </div>
                         </>
                     )}
                      <div>
-                        <label htmlFor="model" className="block text-sm font-medium text-gray-400 mb-1">Model ID</label>
+                        <label htmlFor="model" className="block text-sm font-medium text-text-secondary mb-1">Model ID</label>
                         <input type="text" id="model" value={model} onChange={e => setModel(e.target.value)}
-                                  className="w-full bg-[#5a5a5a] text-gray-100 rounded-md border-[#7a7a7a] focus:ring-blue-500 focus:border-blue-500"
+                                  className="w-full bg-layer-02 text-text-primary rounded-md border-border-strong focus:ring-interactive focus:border-interactive"
                                   placeholder={apiType === ApiType.Gemini ? "e.g., gemini-2.5-flash" : "e.g., gpt-4"} />
                     </div>
                     <div>
-                        <label htmlFor="contextWindow" className="block text-sm font-medium text-gray-400 mb-1">Context Window</label>
+                        <label htmlFor="contextWindow" className="block text-sm font-medium text-text-secondary mb-1">Context Window</label>
                         <input type="number" id="contextWindow" value={contextWindow || ''} onChange={e => setContextWindow(e.target.value ? parseInt(e.target.value, 10) : undefined)}
-                                  className="w-full bg-[#5a5a5a] text-gray-100 rounded-md border-[#7a7a7a] focus:ring-blue-500 focus:border-blue-500"
+                                  className="w-full bg-layer-02 text-text-primary rounded-md border-border-strong focus:ring-interactive focus:border-interactive"
                                   placeholder="Optional, e.g., 8192" />
                     </div>
                      <div>
-                        <label htmlFor="temperature" className="block text-sm font-medium text-gray-400 mb-1">Temperature</label>
+                        <label htmlFor="temperature" className="block text-sm font-medium text-text-secondary mb-1">Temperature</label>
                         <div className="flex items-center gap-4">
                             <input type="range" id="temperature" min="0" max="1" step="0.1" value={temperature} onChange={handleTempChange}
-                                      className="w-full h-2 bg-[#7a7a7a] rounded-lg appearance-none cursor-pointer" />
-                            <span className="font-mono text-sm text-gray-300 w-10 text-center">{temperature?.toFixed(1)}</span>
+                                      className="w-full h-2 bg-layer-03 rounded-lg appearance-none cursor-pointer" />
+                            <span className="font-mono text-sm text-text-secondary w-10 text-center">{temperature?.toFixed(1)}</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
                         <input type="checkbox" id="supportImage" checked={supportImage} onChange={e => setSupportImage(e.target.checked)}
-                            className="h-4 w-4 rounded border-[#9a9a9a] bg-[#5a5a5a] text-blue-600 focus:ring-blue-500" />
-                        <label htmlFor="supportImage" className="text-sm font-medium text-gray-300">Supports Image Upload</label>
+                            className="h-4 w-4 rounded border-border-strong bg-layer-02 text-interactive focus:ring-interactive" />
+                        <label htmlFor="supportImage" className="text-sm font-medium text-text-secondary">Supports Image Upload</label>
                     </div>
                 </div>
-                <div className="p-4 bg-[#2b2b2b] flex justify-end gap-2 rounded-b-lg border-t border-[#5a5a5a]">
-                    <button onClick={onClose} className="px-4 py-2 bg-[#7a7a7a] rounded-md text-gray-200 hover:bg-[#9a9a9a]">Cancel</button>
-                    <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 rounded-md text-white hover:bg-blue-700">Save</button>
+                <div className="p-4 bg-background flex justify-end gap-2 rounded-b-lg border-t border-border-strong">
+                    <button onClick={onClose} className="px-4 py-2 bg-layer-03 rounded-md text-text-primary hover:bg-layer-hover">Cancel</button>
+                    <button onClick={handleSubmit} className="px-4 py-2 bg-interactive rounded-md text-text-on-color hover:bg-interactive-hover">Save</button>
                 </div>
             </div>
         </div>
@@ -192,38 +192,38 @@ const Models: React.FC = () => {
     };
 
     return (
-        <div className="p-4 text-gray-200 h-full">
-            <h1 className="text-xl font-bold text-gray-100 mb-4">AI Models</h1>
-            <p className="text-gray-400 mb-6">Manage the AI models available for chat. The default model will be used for new conversations.</p>
+        <div className="p-4 h-full">
+            <h1 className="text-xl font-bold text-text-primary mb-4">AI Models</h1>
+            <p className="text-text-secondary mb-6">Manage the AI models available for chat. The default model will be used for new conversations.</p>
 
             <div className="space-y-2">
                 {models.map((model) => (
                     <div
                         key={model.id}
-                        className="flex items-center p-3 bg-[#3c3c3c] rounded-lg border border-[#5a5a5a]"
+                        className="flex items-center p-3 bg-layer-01 rounded-lg border border-border-strong"
                     >
-                        <Icon name="CpuChipIcon" className="w-6 h-6 text-blue-500 mr-4" />
+                        <Icon name="CpuChipIcon" className="w-6 h-6 text-interactive mr-4" />
                         <div className="flex-1">
-                            <p className="font-medium text-gray-100">{model.name} <span className="text-xs font-semibold text-gray-400 uppercase">({model.apiType})</span></p>
-                            <p className="text-xs text-gray-400">{model.model}</p>
+                            <p className="font-medium text-text-primary">{model.name} <span className="text-xs font-semibold text-text-secondary uppercase">({model.apiType})</span></p>
+                            <p className="text-xs text-text-secondary">{model.model}</p>
                         </div>
                         <div className="flex items-center gap-2">
                             {model.isDefault ? (
-                                <span className="text-xs bg-blue-900/50 text-blue-300 font-semibold px-2 py-1 rounded-full">Default</span>
+                                <span className="text-xs bg-interactive-active/50 text-interactive-secondary font-semibold px-2 py-1 rounded-full">Default</span>
                             ) : (
                                 <button 
                                     onClick={() => handleSetDefault(model.id)}
-                                    className="text-xs text-gray-400 font-semibold px-2 py-1 rounded-full hover:bg-[#5a5a5a]"
+                                    className="text-xs text-text-secondary font-semibold px-2 py-1 rounded-full hover:bg-layer-02"
                                 >
                                     Set as default
                                 </button>
                             )}
-                             <button onClick={() => openModal(model)} className="p-1.5 hover:bg-[#5a5a5a] rounded-full" aria-label="Edit model">
-                                <Icon name="PencilIcon" className="w-4 h-4 text-gray-400" />
+                             <button onClick={() => openModal(model)} className="p-1.5 hover:bg-layer-02 rounded-full" aria-label="Edit model">
+                                <Icon name="PencilIcon" className="w-4 h-4 text-text-secondary" />
                             </button>
                             {!model.isDefault && (
-                                <button onClick={() => handleDelete(model.id)} className="p-1.5 hover:bg-[#5a5a5a] rounded-full" aria-label="Delete model">
-                                    <Icon name="TrashIcon" className="w-4 h-4 text-red-500" />
+                                <button onClick={() => handleDelete(model.id)} className="p-1.5 hover:bg-layer-02 rounded-full" aria-label="Delete model">
+                                    <Icon name="TrashIcon" className="w-4 h-4 text-support-error" />
                                 </button>
                             )}
                         </div>
@@ -231,7 +231,7 @@ const Models: React.FC = () => {
                 ))}
             </div>
 
-            <button onClick={() => openModal(null)} className="mt-6 w-full py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-700 transition-colors">
+            <button onClick={() => openModal(null)} className="mt-6 w-full py-2 px-4 bg-interactive rounded-md text-text-on-color hover:bg-interactive-hover transition-colors">
                 Add New Model
             </button>
 

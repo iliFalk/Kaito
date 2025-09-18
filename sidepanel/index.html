@@ -5,6 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Sidekick</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        /* Custom Light-Gray Theme */
+        --background: rgb(203, 203, 203);
+        --layer-01: #dcdcdc;
+        --layer-02: #ebebeb;
+        --layer-03: #f4f4f4;
+        --layer-hover: #d4d4d4;
+        --layer-active: #bebebe;
+
+        --border-subtle: #bebebe;
+        --border-strong: #8d8d8d;
+        
+        --text-primary: #161616;
+        --text-secondary: #525252;
+        --text-placeholder: #a8a8a8;
+        --text-on-color: #ffffff;
+        --text-error: #da1e28;
+
+        --interactive: #0f62fe;
+        --interactive-hover: #0353e9;
+        --interactive-active: #002d9c;
+        --interactive-secondary: #0f62fe;
+
+        --support-error: #da1e28;
+        --support-success: #198038;
+        --support-warning: #f1c21b;
+        --support-info: #0043ce;
+        
+        --focus: #0f62fe;
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'background': 'var(--background)',
+              'layer-01': 'var(--layer-01)',
+              'layer-02': 'var(--layer-02)',
+              'layer-03': 'var(--layer-03)',
+              'layer-hover': 'var(--layer-hover)',
+              'layer-active': 'var(--layer-active)',
+              
+              'border-subtle': 'var(--border-subtle)',
+              'border-strong': 'var(--border-strong)',
+              'border-interactive': 'var(--interactive)',
+              
+              'text-primary': 'var(--text-primary)',
+              'text-secondary': 'var(--text-secondary)',
+              'text-placeholder': 'var(--text-placeholder)',
+              'text-on-color': 'var(--text-on-color)',
+              'text-error': 'var(--text-error)',
+              
+              'interactive': 'var(--interactive)',
+              'interactive-hover': 'var(--interactive-hover)',
+              'interactive-active': 'var(--interactive-active)',
+              'interactive-secondary': 'var(--interactive-secondary)',
+              
+              'support-error': 'var(--support-error)',
+              'support-success': 'var(--support-success)',
+              'support-warning': 'var(--support-warning)',
+              'support-info': 'var(--support-info)',
+              
+              'focus': 'var(--focus)',
+            }
+          }
+        }
+      }
+    </script>
     <script type="importmap">
 {
   "imports": {
@@ -19,7 +89,7 @@
 }
 </script>
   </head>
-  <body class="bg-[#1a1a1a]">
+  <body class="bg-background text-text-primary">
     <div id="root"></div>
     <script type="module" src="./src/index.js"></script>
   </body>

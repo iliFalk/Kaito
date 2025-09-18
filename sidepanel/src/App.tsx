@@ -53,8 +53,8 @@ const HistoryModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isO
       <div className="absolute inset-0 bg-black/60" />
       <div 
         className={`
-          absolute top-0 inset-x-0 bg-[#3c3c3c] shadow-xl 
-          border-b border-[#5a5a5a] 
+          absolute top-0 inset-x-0 bg-layer-01 shadow-xl 
+          border-b border-border-subtle 
           flex flex-col max-h-[calc(100vh-6rem)]
           transform transition-all duration-300 ease-out
           ${isOpen ? 'translate-y-0' : '-translate-y-full'}
@@ -62,8 +62,8 @@ const HistoryModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isO
         style={{ top: '4rem' }} // Positioned below the header
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-4 border-b border-[#5a5a5a] flex-shrink-0">
-          <h2 className="text-lg font-semibold text-gray-100">Chat History</h2>
+        <div className="p-4 border-b border-border-strong flex-shrink-0">
+          <h2 className="text-lg font-semibold text-text-primary">Chat History</h2>
         </div>
         <div className="p-2 space-y-1 overflow-y-auto flex-1">
           {sortedConversations.map(([id, messages]) => {
@@ -74,13 +74,13 @@ const HistoryModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isO
               <div
                 key={id}
                 onClick={() => handleSelectConversation(id)}
-                className={`flex items-center p-2.5 rounded-md cursor-pointer group transition-colors ${isActive ? 'bg-blue-900/50' : 'hover:bg-[#5a5a5a]'}`}
+                className={`flex items-center p-2.5 rounded-md cursor-pointer group transition-colors ${isActive ? 'bg-interactive-active' : 'hover:bg-layer-hover'}`}
               >
-                <Icon name="ChatBubbleLeftIcon" className={`w-5 h-5 mr-3 flex-shrink-0 ${isActive ? 'text-blue-400' : 'text-gray-500'}`} />
-                <span className={`flex-1 font-medium truncate pr-2 ${isActive ? 'text-blue-300' : 'text-gray-200'}`} title={title}>{title}</span>
+                <Icon name="ChatBubbleLeftIcon" className={`w-5 h-5 mr-3 flex-shrink-0 ${isActive ? 'text-interactive-secondary' : 'text-text-secondary'}`} />
+                <span className={`flex-1 font-medium truncate pr-2 ${isActive ? 'text-interactive-secondary' : 'text-text-primary'}`} title={title}>{title}</span>
                 <button
                   onClick={(e) => handleDelete(e, id)}
-                  className="p-1.5 text-gray-500 hover:text-red-500 rounded-full hover:bg-red-900/50 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-1.5 text-text-secondary hover:text-text-error rounded-full hover:bg-support-error/20 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Delete conversation"
                   disabled={Object.keys(conversations).length <= 1}
                 >
@@ -90,8 +90,8 @@ const HistoryModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isO
             );
           })}
         </div>
-        <div className="p-3 bg-[#3c3c3c]/70 border-t border-[#5a5a5a] flex-shrink-0">
-          <button onClick={handleNewChat} className="w-full py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-700 transition-colors">
+        <div className="p-3 bg-layer-01/70 border-t border-border-strong flex-shrink-0">
+          <button onClick={handleNewChat} className="w-full py-2 px-4 bg-interactive rounded-md text-text-on-color hover:bg-interactive-hover transition-colors">
             Start New Chat
           </button>
         </div>
@@ -125,31 +125,31 @@ const Header: React.FC<{ onHistoryClick: () => void; }> = ({ onHistoryClick }) =
   };
 
   return (
-    <header className="relative z-40 flex items-center justify-between h-16 px-4 border-b border-[#5a5a5a] bg-[#3c3c3c] flex-shrink-0">
+    <header className="relative z-40 flex items-center justify-between h-16 px-4 border-b border-border-subtle bg-layer-01 flex-shrink-0">
       {showBackButton ? (
         <button onClick={handleGoToMain} className="flex items-center gap-3 group" aria-label="Go to main screen">
-          <Icon name="ArrowLeftIcon" className="w-6 h-6 text-gray-400 group-hover:text-gray-100" />
-          <h1 className="text-xl font-bold text-gray-100">{title}</h1>
+          <Icon name="ArrowLeftIcon" className="w-6 h-6 text-text-secondary group-hover:text-text-primary" />
+          <h1 className="text-xl font-bold text-text-primary">{title}</h1>
         </button>
       ) : (
         <div className="flex items-center gap-3">
           {title === 'Jain' && location.pathname === PANEL_ROUTES.CONVERSATION ? (
             <NeuralAnimation />
           ) : (
-            <h1 className="text-xl font-bold text-gray-100">{title}</h1>
+            <h1 className="text-xl font-bold text-text-primary">{title}</h1>
           )}
         </div>
       )}
       <div className="flex items-center gap-4">
         {location.pathname === PANEL_ROUTES.CONVERSATION && (
           <>
-            <button onClick={handleNewChat} className="text-gray-400 hover:text-blue-400" aria-label="New Chat">
+            <button onClick={handleNewChat} className="text-text-secondary hover:text-interactive-secondary" aria-label="New Chat">
               <Icon name="ChatBubbleBottomCenterPlusIcon" className="w-6 h-6" />
             </button>
-            <button onClick={onHistoryClick} className="text-gray-400 hover:text-blue-400" aria-label="History">
+            <button onClick={onHistoryClick} className="text-text-secondary hover:text-interactive-secondary" aria-label="History">
               <Icon name="ClockIcon" className="w-6 h-6" />
             </button>
-            <button onClick={() => navigate(PANEL_ROUTES.SETTINGS)} className="text-gray-400 hover:text-blue-400" aria-label="Settings">
+            <button onClick={() => navigate(PANEL_ROUTES.SETTINGS)} className="text-text-secondary hover:text-interactive-secondary" aria-label="Settings">
               <Icon name="Cog6ToothIcon" className="w-6 h-6" />
             </button>
           </>
@@ -191,7 +191,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, [startConversationWithShortcut, navigate, setPendingQuotedText]);
 
   return (
-    <div className="flex flex-col h-screen bg-[#2b2b2b] text-gray-200">
+    <div className="flex flex-col h-screen bg-background text-text-primary">
       <Header onHistoryClick={() => setIsHistoryOpen(prev => !prev)} />
       <main className="flex-1 overflow-y-auto">
         {children}

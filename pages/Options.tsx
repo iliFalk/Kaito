@@ -40,37 +40,37 @@ const ShortcutModal: React.FC<{
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-            <div className="bg-[#3c3c3c] rounded-lg shadow-xl w-full max-w-md border border-[#5a5a5a]">
-                <div className="p-4 border-b border-[#5a5a5a]">
-                    <h2 className="text-lg font-semibold text-gray-100">{isEditing ? 'Edit Shortcut' : 'Create Shortcut'}</h2>
+            <div className="bg-layer-01 rounded-lg shadow-xl w-full max-w-md border border-border-strong">
+                <div className="p-4 border-b border-border-strong">
+                    <h2 className="text-lg font-semibold text-text-primary">{isEditing ? 'Edit Shortcut' : 'Create Shortcut'}</h2>
                 </div>
                 <div className="p-4 space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-1">Icon</label>
-                        <div className="grid grid-cols-8 gap-2 p-2 bg-[#2b2b2b] rounded-lg">
+                        <label className="block text-sm font-medium text-text-secondary mb-1">Icon</label>
+                        <div className="grid grid-cols-8 gap-2 p-2 bg-background rounded-lg">
                             {ALL_ICONS.map(iconName => (
-                                <button key={iconName} onClick={() => setIcon(iconName)} className={`p-2 rounded ${icon === iconName ? 'bg-blue-600 text-white' : 'bg-[#5a5a5a] text-gray-300'} hover:bg-blue-500 hover:text-white`}>
+                                <button key={iconName} onClick={() => setIcon(iconName)} className={`p-2 rounded ${icon === iconName ? 'bg-interactive text-text-on-color' : 'bg-layer-02 text-text-secondary'} hover:bg-interactive hover:text-text-on-color`}>
                                     <Icon name={iconName} className="w-5 h-5 mx-auto"/>
                                 </button>
                             ))}
                         </div>
                     </div>
                     <div>
-                        <label htmlFor="title" className="block text-sm font-medium text-gray-400 mb-1">Name</label>
+                        <label htmlFor="title" className="block text-sm font-medium text-text-secondary mb-1">Name</label>
                         <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)}
-                               className="w-full bg-[#5a5a5a] text-gray-100 rounded-md border-[#7a7a7a] focus:ring-blue-500 focus:border-blue-500" />
+                               className="w-full bg-layer-02 text-text-primary rounded-md border-border-strong focus:ring-interactive focus:border-interactive" />
                     </div>
                     <div>
-                        <label htmlFor="prompt" className="block text-sm font-medium text-gray-400 mb-1">Prompt</label>
+                        <label htmlFor="prompt" className="block text-sm font-medium text-text-secondary mb-1">Prompt</label>
                         <textarea id="prompt" value={prompt} onChange={e => setPrompt(e.target.value)} rows={4}
-                                  className="w-full bg-[#5a5a5a] text-gray-100 rounded-md border-[#7a7a7a] focus:ring-blue-500 focus:border-blue-500"
+                                  className="w-full bg-layer-02 text-text-primary rounded-md border-border-strong focus:ring-interactive focus:border-interactive"
                                   placeholder="e.g., Summarize this: {{selected_text}}" />
-                        <p className="text-xs text-gray-500 mt-1">{'Use `{{selected_text}}` for context from quoted text.'}</p>
+                        <p className="text-xs text-text-placeholder mt-1">{'Use `{{selected_text}}` for context from quoted text.'}</p>
                     </div>
                 </div>
-                <div className="p-4 bg-[#2b2b2b] flex justify-end gap-2 rounded-b-lg">
-                    <button onClick={onClose} className="px-4 py-2 bg-[#7a7a7a] rounded-md text-gray-200 hover:bg-[#9a9a9a]">Cancel</button>
-                    <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 rounded-md text-white hover:bg-blue-700">Save</button>
+                <div className="p-4 bg-background flex justify-end gap-2 rounded-b-lg">
+                    <button onClick={onClose} className="px-4 py-2 bg-layer-03 rounded-md text-text-primary hover:bg-layer-hover">Cancel</button>
+                    <button onClick={handleSubmit} className="px-4 py-2 bg-interactive rounded-md text-text-on-color hover:bg-interactive-hover">Save</button>
                 </div>
             </div>
         </div>
@@ -125,30 +125,30 @@ const Options: React.FC = () => {
     };
     
     return (
-        <div className="p-4 h-full text-gray-200 overflow-y-auto">
+        <div className="p-4 h-full overflow-y-auto">
              <div className="mb-6">
-                <h1 className="text-xl font-bold text-gray-100">Quick Action Shortcuts</h1>
-                <p className="text-gray-400">Customize and reorder your one-click prompts for the context menu.</p>
+                <h1 className="text-xl font-bold text-text-primary">Quick Action Shortcuts</h1>
+                <p className="text-text-secondary">Customize and reorder your one-click prompts for the context menu.</p>
              </div>
              
              <div className="mb-8">
-                <h2 className="text-lg font-bold mb-2 text-gray-300">Context Menu Preview</h2>
-                <p className="text-sm text-gray-500 mb-4">This is how the context menu will look when you select text on a webpage. The changes you make below will be reflected here live.</p>
+                <h2 className="text-lg font-bold mb-2 text-text-secondary">Context Menu Preview</h2>
+                <p className="text-sm text-text-placeholder mb-4">This is how the context menu will look when you select text on a webpage. The changes you make below will be reflected here live.</p>
                 <div className="bg-black/50 p-8 rounded-lg flex justify-center items-center">
-                    <div className="bg-[#2b2b2b]/90 backdrop-blur-sm rounded-lg shadow-lg p-1 flex flex-col gap-1">
-                        <button title="Quote Text" className="group relative p-2 rounded-md text-gray-300 hover:bg-[#7a7a7a]/70 hover:text-white transition-colors">
+                    <div className="bg-layer-01/90 backdrop-blur-sm rounded-lg shadow-lg p-1 flex flex-col gap-1">
+                        <button title="Quote Text" className="group relative p-2 rounded-md text-text-secondary hover:bg-layer-hover/70 hover:text-text-primary transition-colors">
                             <Icon name="ChatBubbleLeftRightIcon" className="w-5 h-5" />
                         </button>
                         
-                        <div className="h-px bg-[#9a9a9a]/50 my-1 mx-1" />
+                        <div className="h-px bg-border-strong/50 my-1 mx-1" />
 
                         {shortcuts.slice(0, 4).map(shortcut => (
-                            <button key={shortcut.id} title={shortcut.title} className="group relative p-2 rounded-md text-gray-300 hover:bg-[#7a7a7a]/70 hover:text-white transition-colors">
+                            <button key={shortcut.id} title={shortcut.title} className="group relative p-2 rounded-md text-text-secondary hover:bg-layer-hover/70 hover:text-text-primary transition-colors">
                                 <Icon name={shortcut.icon} className="w-5 h-5" />
                             </button>
                         ))}
                         
-                        <button title="Manage Shortcuts..." className="group relative p-2 rounded-md text-gray-300 hover:bg-[#7a7a7a]/70 hover:text-white transition-colors">
+                        <button title="Manage Shortcuts..." className="group relative p-2 rounded-md text-text-secondary hover:bg-layer-hover/70 hover:text-text-primary transition-colors">
                             <Icon name="EllipsisHorizontalIcon" className="w-5 h-5" />
                         </button>
                     </div>
@@ -156,7 +156,7 @@ const Options: React.FC = () => {
              </div>
 
             <div>
-                <h2 className="text-lg font-bold mb-3 text-gray-300">Edit Shortcuts</h2>
+                <h2 className="text-lg font-bold mb-3 text-text-secondary">Edit Shortcuts</h2>
                 <div className="space-y-2" onDragEnd={handleDrop}>
                     {shortcuts.map((shortcut, index) => (
                         <div
@@ -165,25 +165,25 @@ const Options: React.FC = () => {
                             onDragStart={(e) => handleDragStart(e, index)}
                             onDragEnter={(e) => handleDragEnter(e, index)}
                             onDragOver={(e) => e.preventDefault()}
-                            className="flex items-center p-3 bg-[#3c3c3c] rounded-lg border border-[#5a5a5a] cursor-grab active:cursor-grabbing"
+                            className="flex items-center p-3 bg-layer-01 rounded-lg border border-border-strong cursor-grab active:cursor-grabbing"
                         >
-                            <Icon name="Bars3Icon" className="w-5 h-5 text-gray-500 mr-3" />
-                            <Icon name={shortcut.icon} className="w-6 h-6 text-blue-500 mr-4" />
+                            <Icon name="Bars3Icon" className="w-5 h-5 text-text-placeholder mr-3" />
+                            <Icon name={shortcut.icon} className="w-6 h-6 text-interactive mr-4" />
                             <span className="flex-1 font-medium">{shortcut.title}</span>
                             {shortcut.isDefault ? (
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs bg-[#7a7a7a] text-gray-300 font-semibold px-2 py-1 rounded-full">Default</span>
-                                    <button onClick={() => openModal(shortcut)} className="p-1 hover:bg-[#5a5a5a] rounded-full" aria-label="Edit shortcut">
-                                        <Icon name="PencilIcon" className="w-4 h-4 text-gray-400" />
+                                    <span className="text-xs bg-layer-03 text-text-secondary font-semibold px-2 py-1 rounded-full">Default</span>
+                                    <button onClick={() => openModal(shortcut)} className="p-1 hover:bg-layer-02 rounded-full" aria-label="Edit shortcut">
+                                        <Icon name="PencilIcon" className="w-4 h-4 text-text-secondary" />
                                     </button>
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => openModal(shortcut)} className="p-1 hover:bg-[#5a5a5a] rounded-full" aria-label="Edit shortcut">
-                                        <Icon name="PencilIcon" className="w-4 h-4 text-gray-400" />
+                                    <button onClick={() => openModal(shortcut)} className="p-1 hover:bg-layer-02 rounded-full" aria-label="Edit shortcut">
+                                        <Icon name="PencilIcon" className="w-4 h-4 text-text-secondary" />
                                     </button>
-                                    <button onClick={() => handleDelete(shortcut.id)} className="p-1 hover:bg-[#5a5a5a] rounded-full" aria-label="Delete shortcut">
-                                        <Icon name="TrashIcon" className="w-4 h-4 text-red-500" />
+                                    <button onClick={() => handleDelete(shortcut.id)} className="p-1 hover:bg-layer-02 rounded-full" aria-label="Delete shortcut">
+                                        <Icon name="TrashIcon" className="w-4 h-4 text-support-error" />
                                     </button>
                                 </div>
                             )}
@@ -191,7 +191,7 @@ const Options: React.FC = () => {
                     ))}
                 </div>
 
-                <button onClick={() => openModal(null)} className="mt-6 w-full py-2 px-4 bg-blue-600 rounded-md text-white hover:bg-blue-700 transition-colors">
+                <button onClick={() => openModal(null)} className="mt-6 w-full py-2 px-4 bg-interactive rounded-md text-text-on-color hover:bg-interactive-hover transition-colors">
                     Create New Shortcut
                 </button>
             </div>
