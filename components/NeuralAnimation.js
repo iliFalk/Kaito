@@ -64,11 +64,11 @@ const vertexShader = `
     vNormal = normalize(normalMatrix * normal);
     
     // Distort vertices for a wavy, undulating shape
-    float distortion = snoise(position * 2.5 + uTime * 0.4) * 0.25;
+    float distortion = snoise(position * 1.5 + uTime * 0.2) * 0.5;
     vec3 newPosition = position + normal * distortion;
     
     // Another layer of noise for finer details and twisting
-    float fineDistortion = snoise(newPosition * 8.0 + uTime * 0.6) * 0.1;
+    float fineDistortion = snoise(newPosition * 5.0 + uTime * 0.3) * 0.15;
     newPosition += normal * fineDistortion;
     
     vPosition = vec3(modelViewMatrix * vec4(newPosition, 1.0));
