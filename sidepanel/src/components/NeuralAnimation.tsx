@@ -141,7 +141,7 @@ const fragmentShader = `
     fresnel = pow(fresnel, 3.0);
 
     // Flowing noise pattern for the surface texture
-    float noise = snoise(vNormal * 4.0 + uTime * 0.2);
+    float noise = snoise(vNormal * 2.0 + uTime * 0.2);
     noise = (noise + 1.0) * 0.5; // Map noise to 0-1 range
 
     // Combine colors based on the noise to create a flowing pattern
