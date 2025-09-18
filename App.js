@@ -9,6 +9,7 @@ import { AppContextProvider, useAppContext } from './context/AppContext.js';
 import { PANEL_ROUTES } from './constants.js';
 import { Icon } from './components/Icons.js';
 import NeuralAnimation from './components/NeuralAnimation.js';
+import FilmGrainOverlay from './components/FilmGrainOverlay.js';
 
 const { useState, useEffect } = React;
 
@@ -196,6 +197,7 @@ const Layout = ({ children }) => {
 
   return (
     React.createElement('div', { className: "flex flex-col h-screen bg-background text-text-primary" },
+      React.createElement(FilmGrainOverlay, null),
       React.createElement(Header, { onHistoryClick: () => setIsHistoryOpen(prev => !prev) }),
       React.createElement('main', { className: "flex-1 overflow-y-auto" },
         children

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sender } from '../types.js';
+import { useLocalStorage } from '../hooks/useLocalStorage.js';
 
 const { createContext, useState, useContext, useMemo, useEffect, useCallback } = React;
 
@@ -20,6 +21,9 @@ export const AppContextProvider = ({ children }) => {
   const [isContextMenuVisible, setIsContextMenuVisible] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState('');
+  
+  // Appearance State
+  const [filmGrain, setFilmGrain] = useLocalStorage('film_grain_intensity', 0);
 
   const newChat = () => {
     const newId = Date.now().toString();
@@ -144,7 +148,9 @@ export const AppContextProvider = ({ children }) => {
     selectedText,
     hideContextMenu,
     showContextMenu,
-  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, isContextMenuVisible, contextMenuPosition, selectedText, hideContextMenu, showContextMenu]);
+    filmGrain,
+    setFilmGrain,
+  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, isContextMenuVisible, contextMenuPosition, selectedText, hideContextMenu, showContextMenu, filmGrain, setFilmGrain]);
 
   return (
     React.createElement(AppContext.Provider, { value: value },

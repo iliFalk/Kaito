@@ -9,6 +9,7 @@ import { AppContextProvider, useAppContext } from './context/AppContext';
 import { PANEL_ROUTES } from './constants';
 import { Icon } from './components/Icons';
 import NeuralAnimation from './components/NeuralAnimation';
+import FilmGrainOverlay from './components/FilmGrainOverlay';
 
 const pageTitles: { [key:string]: string } = {
   [PANEL_ROUTES.CONVERSATION]: 'Jain',
@@ -192,6 +193,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="flex flex-col h-screen bg-background text-text-primary">
+      <FilmGrainOverlay />
       <Header onHistoryClick={() => setIsHistoryOpen(prev => !prev)} />
       <main className="flex-1 overflow-y-auto">
         {children}

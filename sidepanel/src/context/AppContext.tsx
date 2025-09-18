@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useMemo, useEffect, useCallback } from 'react';
 import type { Message, Shortcut } from '../types';
 import { Sender } from '../types';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface AppContextType {
   searchText: string;
@@ -25,6 +26,9 @@ interface AppContextType {
   pendingQuotedText: string | null;
   setPendingQuotedText: (text: string) => void;
   clearPendingQuotedText: () => void;
+
+  filmGrain: number;
+  setFilmGrain: (value: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -39,6 +43,10 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   
   // Quoted Text State
   const [pendingQuotedText, setPendingQuotedTextState] = useState<string | null>(null);
+
+  // Appearance State
+  const [filmGrain, setFilmGrain] = useLocalStorage<number>('film_grain_intensity', 0);
+
 
   const newChat = () => {
     const newId = Date.now().toString();
@@ -148,7 +156,9 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     pendingQuotedText,
     setPendingQuotedText,
     clearPendingQuotedText,
-  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText]);
+    filmGrain,
+    setFilmGrain,
+  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, filmGrain, setFilmGrain]);
 
   return (
     <AppContext.Provider value={value}>

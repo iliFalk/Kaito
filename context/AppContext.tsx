@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useMemo, useEffect, useCallback } from 'react';
 import type { Message, Shortcut } from '../types';
 import { Sender } from '../types';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface AppContextType {
   searchText: string;
@@ -31,6 +32,9 @@ interface AppContextType {
   selectedText: string;
   hideContextMenu: () => void;
   showContextMenu: (position: { top: number; left: number }, text: string) => void;
+
+  filmGrain: number;
+  setFilmGrain: (value: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -50,6 +54,9 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isContextMenuVisible, setIsContextMenuVisible] = useState(false);
   const [contextMenuPosition, setContextMenuPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState('');
+  
+  // Appearance State
+  const [filmGrain, setFilmGrain] = useLocalStorage<number>('film_grain_intensity', 0);
 
   const newChat = () => {
     const newId = Date.now().toString();
@@ -174,7 +181,9 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     selectedText,
     hideContextMenu,
     showContextMenu,
-  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, isContextMenuVisible, contextMenuPosition, selectedText, hideContextMenu, showContextMenu]);
+    filmGrain,
+    setFilmGrain,
+  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, isContextMenuVisible, contextMenuPosition, selectedText, hideContextMenu, showContextMenu, filmGrain, setFilmGrain]);
 
   return (
     <AppContext.Provider value={value}>

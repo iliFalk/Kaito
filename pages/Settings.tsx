@@ -2,8 +2,15 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { PANEL_ROUTES } from '../constants';
 import { Icon } from '../components/Icons';
+import { useAppContext } from '../context/AppContext';
 
 const Settings: React.FC = () => {
+  const { filmGrain, setFilmGrain } = useAppContext();
+
+  const handleGrainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilmGrain(parseFloat(e.target.value));
+  };
+
   return (
     <div className="p-4 h-full">
       <div className="space-y-3">
@@ -27,6 +34,26 @@ const Settings: React.FC = () => {
             <p className="text-sm text-text-secondary">Add or remove AI models available for chat.</p>
           </div>
         </NavLink>
+      </div>
+
+      <div className="mt-6 pt-4 border-t border-border-strong">
+        <h2 className="text-base font-semibold text-text-primary mb-3">Appearance</h2>
+        <div className="p-4 bg-layer-01 rounded-lg border border-border-strong">
+          <label htmlFor="film-grain-slider" className="flex justify-between items-center text-sm font-medium text-text-primary mb-2">
+            <span>Film Grain</span>
+            <span className="font-mono text-xs bg-layer-02 px-2 py-1 rounded">{Math.round(filmGrain * 100)}%</span>
+          </label>
+          <input
+            id="film-grain-slider"
+            type="range"
+            min="0"
+            max="0.2"
+            step="0.01"
+            value={filmGrain}
+            onChange={handleGrainChange}
+            className="w-full h-2 bg-layer-03 rounded-lg appearance-none cursor-pointer accent-interactive"
+          />
+        </div>
       </div>
     </div>
   );

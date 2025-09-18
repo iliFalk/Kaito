@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sender } from '../types.js';
+import { useLocalStorage } from '../hooks/useLocalStorage.js';
 const { createContext, useState, useContext, useMemo, useEffect, useCallback } = React;
 
 const AppContext = createContext(undefined);
@@ -14,6 +15,9 @@ export const AppContextProvider = ({ children }) => {
   
   // Quoted Text State
   const [pendingQuotedText, setPendingQuotedTextState] = useState(null);
+  
+  // Appearance State
+  const [filmGrain, setFilmGrain] = useLocalStorage('film_grain_intensity', 0);
 
   const newChat = () => {
     const newId = Date.now().toString();
@@ -123,7 +127,9 @@ export const AppContextProvider = ({ children }) => {
     pendingQuotedText,
     setPendingQuotedText,
     clearPendingQuotedText,
-  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText]);
+    filmGrain,
+    setFilmGrain,
+  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, filmGrain, setFilmGrain]);
 
   return (
     React.createElement(AppContext.Provider, { value: value },
