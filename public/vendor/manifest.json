@@ -1,0 +1,11 @@
+{
+  "https://cdn.tailwindcss.com": "/vendor/cdn.tailwindcss.com/6f06d28f90.bin",
+  "https://aistudiocdn.com/react@^19.1.1/": "/vendor/aistudiocdn.com/280cb31c0d_react__19.1.1",
+  "https://aistudiocdn.com/react@^19.1.1": "/vendor/aistudiocdn.com/45b6095d6e_react__19.1.1",
+  "https://aistudiocdn.com/@google/genai@^1.17.0": "/vendor/aistudiocdn.com/9392d5da84_genai__1.17.0",
+  "https://aistudiocdn.com/react-dom@^19.1.1/client": "/vendor/aistudiocdn.com/df3e2e0ff1_client",
+  "https://aistudiocdn.com/react-dom@^19.1.1/": "/vendor/aistudiocdn.com/8d243ea67e_react-dom__19.1.1",
+  "https://aistudiocdn.com/react-router-dom@^7.8.2": "/vendor/aistudiocdn.com/bf3a86ff17_react-router-dom__7.8.2",
+  "https://aistudiocdn.com/three@^0.168.0": "/vendor/aistudiocdn.com/54bfe20286_three__0.168.0",
+  "https://aistudiocdn.com": "/vendor/aistudiocdn.com/73af351e97.bin"
+}
