@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Sidekick</title>
-    <script src="/vendor/cdn.tailwindcss.com/6f06d28f90.bin"></script>
     <style>
       :root {
         /* User-Specified Gray Theme - High Contrast */
@@ -37,60 +36,15 @@
         --focus: #0062ff;
       }
     </style>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              'background': 'var(--background)',
-              'layer-01': 'var(--layer-01)',
-              'layer-02': 'var(--layer-02)',
-              'layer-03': 'var(--layer-03)',
-              'layer-hover': 'var(--layer-hover)',
-              'layer-active': 'var(--layer-active)',
-              
-              'border-subtle': 'var(--border-subtle)',
-              'border-strong': 'var(--border-strong)',
-              'border-interactive': 'var(--interactive)',
-              
-              'text-primary': 'var(--text-primary)',
-              'text-secondary': 'var(--text-secondary)',
-              'text-placeholder': 'var(--text-placeholder)',
-              'text-on-color': 'var(--text-on-color)',
-              'text-error': 'var(--text-error)',
-              
-              'interactive': 'var(--interactive)',
-              'interactive-hover': 'var(--interactive-hover)',
-              'interactive-active': 'var(--interactive-active)',
-              'interactive-secondary': 'var(--interactive-secondary)',
-              
-              'support-error': 'var(--support-error)',
-              'support-success': 'var(--support-success)',
-              'support-warning': 'var(--support-warning)',
-              'support-info': 'var(--support-info)',
-              
-              'focus': 'var(--focus)',
-            }
-          }
-        }
-      }
-    </script>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "/vendor/aistudiocdn.com/280cb31c0d_react__19.1.1",
-    "react": "/vendor/aistudiocdn.com/45b6095d6e_react__19.1.1",
-    "@google/genai": "/vendor/aistudiocdn.com/9392d5da84_genai__1.17.0",
-    "react-dom/client": "/vendor/aistudiocdn.com/df3e2e0ff1_client",
-    "react-dom/": "/vendor/aistudiocdn.com/8d243ea67e_react-dom__19.1.1",
-    "react-router-dom": "/vendor/aistudiocdn.com/bf3a86ff17_react-router-dom__7.8.2",
-    "three": "/vendor/aistudiocdn.com/54bfe20286_three__0.168.0"
-  }
-}
-</script>
+    <script src="dist/assets/tailwind-config.js"></script>
+    <script type="importmap" src="dist/assets/importmap.json"></script>
 </head>
   <body class="bg-background text-text-primary">
     <div id="root"></div>
-    <script type="module" src="/index.js"></script>
+    <script type="module" crossorigin src="dist/assets/index-CLvRHGOy.js"></script>
+    <link rel="modulepreload" crossorigin href="dist/assets/vendor_misc-DnC4bF5A.js">
+    <link rel="modulepreload" crossorigin href="dist/assets/vendor_react-CF4XdT1S.js">
+    <link rel="modulepreload" crossorigin href="dist/assets/vendor_genai-WuA0vkZ5.js">
+    <link rel="modulepreload" crossorigin href="dist/assets/vendor_three-bXuIz800.js">
   </body>
 </html>
