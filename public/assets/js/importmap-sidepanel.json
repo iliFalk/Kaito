@@ -1,0 +1,11 @@
+{
+  "imports": {
+    "react/": "../assets/lib/react/",
+    "react": "../assets/lib/react/react.mjs",
+    "@google/genai": "../assets/lib/genai/index.js",
+    "react-dom/client": "../assets/lib/react-dom/client.js",
+    "react-dom/": "../assets/lib/react-dom/",
+    "react-router-dom": "../assets/lib/react-router-dom/index.js",
+    "three": "../assets/lib/three/index.js"
+  }
+}

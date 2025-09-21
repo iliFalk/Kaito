@@ -14,6 +14,23 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
-      }
+      },
+      build: {
+        rollupOptions: {
+          input: {
+            main: path.resolve(__dirname, 'index.html'),
+            sidepanel: path.resolve(__dirname, 'sidepanel/index.html'),
+          },
+          output: {
+            manualChunks: {
+              'three': ['three'],
+              'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+              'ai-vendor': ['@google/genai'],
+            },
+          },
+        },
+        chunkSizeWarningLimit: 1000, // Increase warning limit to 1MB
+      },
+      publicDir: 'public',
     };
 });

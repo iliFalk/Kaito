@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Sidekick</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./assets/js/tailwind.js"></script>
+    <script src="./assets/js/tailwind-config.js"></script>
     <style>
       :root {
         /* User-Specified Gray Theme - High Contrast */
@@ -37,58 +38,8 @@
         --focus: #0062ff;
       }
     </style>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              'background': 'var(--background)',
-              'layer-01': 'var(--layer-01)',
-              'layer-02': 'var(--layer-02)',
-              'layer-03': 'var(--layer-03)',
-              'layer-hover': 'var(--layer-hover)',
-              'layer-active': 'var(--layer-active)',
-              
-              'border-subtle': 'var(--border-subtle)',
-              'border-strong': 'var(--border-strong)',
-              'border-interactive': 'var(--interactive)',
-              
-              'text-primary': 'var(--text-primary)',
-              'text-secondary': 'var(--text-secondary)',
-              'text-placeholder': 'var(--text-placeholder)',
-              'text-on-color': 'var(--text-on-color)',
-              'text-error': 'var(--text-error)',
-              
-              'interactive': 'var(--interactive)',
-              'interactive-hover': 'var(--interactive-hover)',
-              'interactive-active': 'var(--interactive-active)',
-              'interactive-secondary': 'var(--interactive-secondary)',
-              
-              'support-error': 'var(--support-error)',
-              'support-success': 'var(--support-success)',
-              'support-warning': 'var(--support-warning)',
-              'support-info': 'var(--support-info)',
-              
-              'focus': 'var(--focus)',
-            }
-          }
-        }
-      }
-    </script>
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "react": "https://aistudiocdn.com/react@^19.1.1",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.17.0",
-    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.1.1/client",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.8.2",
-    "three": "https://aistudiocdn.com/three@^0.168.0"
-  }
-}
-</script>
-</head>
+    <script type="importmap" src="./assets/js/importmap-root.json"></script>
+  </head>
   <body class="bg-background text-text-primary">
     <div id="root"></div>
     <script type="module" src="/index.js"></script>
