@@ -12,6 +12,12 @@ import TypingKeyboardIcon from '../components/TypingKeyboardIcon.js';
 
 const { useState, useRef, useEffect, useCallback } = React;
 
+const LANGUAGE_OPTIONS = [
+    { display: 'English', full: 'English' },
+    { display: 'Deutsch', full: 'German' },
+    { display: 'Русский', full: 'Russian' },
+];
+
 // Basic markdown to HTML renderer
 const SimpleMarkdown = React.memo(({ content }) => {
     const html = content
@@ -96,11 +102,14 @@ const Conversation = () => {
     const [shortcuts] = useLocalStorage('shortcuts', DEFAULT_SHORTCUTS);
     const [models] = useLocalStorage('ai_models', DEFAULT_MODELS);
     const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
-    
+    const [selectedLanguage, setSelectedLanguage] = useState('English');
+    const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
     const textareaRef = useRef(null);
     const actionsDropdownRef = useRef(null);
+    const languageDropdownRef = useRef(null);
 
     const messages = currentConversationId ? conversations[currentConversationId] || [] : [];
     const activeModel = models.find(m => m.isDefault) || models[0] || DEFAULT_MODELS[0];
@@ -129,6 +138,9 @@ const Conversation = () => {
         const handleClickOutside = (event) => {
             if (actionsDropdownRef.current && !actionsDropdownRef.current.contains(event.target)) {
                 setIsActionsDropdownOpen(false);
+            }
+            if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target)) {
+                setIsLanguageDropdownOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -414,14 +426,23 @@ const Conversation = () => {
                                     React.createElement(Icon, { name: "TrashIcon", className: "w-5 h-5" })
                                 )
                             ),
-                            React.createElement('div', { className: "mt-2 mb-2 flex items-center gap-2 px-1" },
-                                React.createElement('button', { onClick: () => handleFileAction("Extract text from the image and translate it to Simplified Chinese"), className: "flex items-center gap-1 text-sm bg-interactive-active/70 text-interactive-secondary px-3 py-1.5 rounded-lg hover:bg-interactive-active font-medium" },
-                                    React.createElement('span', null, "Extract & Translate:"),
-                                    React.createElement('span', { className: "font-semibold" }, "简体中文"),
-                                    React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 20 20", fill: "currentColor", className: "w-4 h-4" }, React.createElement('path', { fillRule: "evenodd", d: "M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z", clipRule: "evenodd" }))
+                            React.createElement('div', { className: "mt-1 mb-1 flex items-center gap-1 px-1" },
+                                React.createElement('div', { className: "relative" },
+                                    React.createElement('button', { onClick: () => setIsLanguageDropdownOpen(true), className: "flex items-center gap-1 text-xs bg-interactive-active/70 text-interactive-secondary px-2 py-1 rounded-lg hover:bg-interactive-active font-medium" },
+                                        React.createElement('span', null, "Extract & Translate:"),
+                                        React.createElement('span', { className: "font-semibold" }, LANGUAGE_OPTIONS.find(l => l.full === selectedLanguage).display),
+                                        React.createElement('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 20 20", fill: "currentColor", className: "w-4 h-4" }, React.createElement('path', { fillRule: "evenodd", d: "M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z", clipRule: "evenodd" }))
+                                    ),
+                                    isLanguageDropdownOpen && React.createElement('div', { className: "absolute bottom-full mb-1 w-40 bg-layer-02 rounded-lg shadow-lg border border-border-strong z-10", ref: languageDropdownRef },
+                                        React.createElement('ul', { className: "py-1" },
+                                            LANGUAGE_OPTIONS.map(lang => React.createElement('li', { key: lang.full },
+                                                React.createElement('button', { onClick: () => { setSelectedLanguage(lang.full); setIsLanguageDropdownOpen(false); handleFileAction(`Extract text from the image and translate it to ${lang.full}`); }, className: "w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-layer-03" }, lang.display)
+                                            ))
+                                        )
+                                    )
                                 ),
-                                React.createElement('button', { onClick: () => handleFileAction("Extract all text from this image"), className: "text-sm bg-interactive-active/70 text-interactive-secondary px-3 py-1.5 rounded-lg hover:bg-interactive-active font-medium" }, "Grab Text"),
-                                React.createElement('button', { onClick: () => handleFileAction("Describe this image"), className: "text-sm bg-interactive-active/70 text-interactive-secondary px-3 py-1.5 rounded-lg hover:bg-interactive-active font-medium" }, "Describe")
+                                React.createElement('button', { onClick: () => handleFileAction("Extract all text from this image"), className: "text-xs bg-interactive-active/70 text-interactive-secondary px-2 py-1 rounded-lg hover:bg-interactive-active font-medium" }, "Grab Text"),
+                                React.createElement('button', { onClick: () => handleFileAction("Describe this image"), className: "text-xs bg-interactive-active/70 text-interactive-secondary px-2 py-1 rounded-lg hover:bg-interactive-active font-medium" }, "Describe")
                             ),
                             React.createElement('hr', { className: "border-border-strong" })
                         )
@@ -471,9 +492,6 @@ const Conversation = () => {
                                 ),
                                 React.createElement('button', { onClick: handlePasteContext, className: "p-2 hover:bg-layer-02 rounded-lg", 'aria-label': "Paste from clipboard" },
                                     React.createElement(Icon, { name: "LinkIcon", className: "w-5 h-5" })
-                                ),
-                                React.createElement('button', { onClick: startScreenshot, className: "p-2 hover:bg-layer-02 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed", 'aria-label': "Take screenshot", disabled: !canAttachFile, title: !canAttachFile ? "Screenshots not supported for this model" : "Take screenshot" },
-                                    React.createElement(Icon, { name: "CameraIcon", className: "w-5 h-5" })
                                 )
                             )
                         )

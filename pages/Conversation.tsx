@@ -560,19 +560,6 @@ const Conversation: React.FC = () => {
                                 <button onClick={handlePasteContext} className="p-2 hover:bg-layer-02 rounded-lg" aria-label="Paste from clipboard">
                                     <Icon name="LinkIcon" className="w-5 h-5"/>
                                 </button>
-                                <button
-                                    onClick={startScreenshot}
-                                    className="p-2 hover:bg-layer-02 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed relative group"
-                                    aria-label="Take screenshot"
-                                    disabled={!canAttachFile}
-                                    title={!canAttachFile ? "Screenshots not supported for this model" : "Take screenshot (AI Sidekick feature)"}>
-                                    <Icon name="CameraIcon" className="w-5 h-5"/>
-                                    {canAttachFile && (
-                                        <div className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 bg-layer-03 text-text-primary text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                                            AI Sidekick Screenshot
-                                        </div>
-                                    )}
-                                </button>
                             </div>
                         </div>
                     )}

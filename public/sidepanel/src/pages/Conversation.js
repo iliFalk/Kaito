@@ -471,9 +471,6 @@ const Conversation = () => {
                                 ),
                                 React.createElement('button', { onClick: handlePasteContext, className: "p-2 hover:bg-layer-02 rounded-lg", 'aria-label': "Paste from clipboard" },
                                     React.createElement(Icon, { name: "LinkIcon", className: "w-5 h-5" })
-                                ),
-                                React.createElement('button', { onClick: startScreenshot, className: "p-2 hover:bg-layer-02 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed", 'aria-label': "Take screenshot", disabled: !canAttachFile, title: !canAttachFile ? "Screenshots not supported for this model" : "Take screenshot" },
-                                    React.createElement(Icon, { name: "CameraIcon", className: "w-5 h-5" })
                                 )
                             )
                         )

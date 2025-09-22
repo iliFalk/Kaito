@@ -476,9 +476,6 @@ const Conversation: React.FC = () => {
                                 <button onClick={handlePasteContext} className="p-2 hover:bg-layer-02 rounded-lg" aria-label="Paste from clipboard">
                                     <Icon name="LinkIcon" className="w-5 h-5"/>
                                 </button>
-                                <button onClick={startScreenshot} className="p-2 hover:bg-layer-02 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Take screenshot" disabled={!canAttachFile} title={!canAttachFile ? "Screenshots not supported for this model" : "Take screenshot"}>
-                                    <Icon name="CameraIcon" className="w-5 h-5"/>
-                                </button>
                             </div>
                         </div>
                     )}
