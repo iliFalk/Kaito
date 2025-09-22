@@ -166,7 +166,46 @@ const Conversation: React.FC = () => {
         if (!chrome || !chrome.runtime) return;
 
         const handleMessage = (request: any) => {
-            if (request.type === 'screenshotTaken' && request.dataUrl && canAttachFile) {
+            // Handle screenshot with action from context menu
+            if (request.type === 'screenshotAction' && request.dataUrl && canAttachFile) {
+                const dataUrlToFile = async (dataUrl: string, fileName: string): Promise<File> => {
+                    const res = await fetch(dataUrl);
+                    const blob = await res.blob();
+                    return new File([blob], fileName, { type: blob.type });
+                };
+
+                dataUrlToFile(request.dataUrl, `screenshot-${Date.now()}.png`).then(file => {
+                    setAttachedFile(file);
+                    setFilePreview(request.dataUrl);
+                    
+                    // Auto-populate prompt based on action
+                    let prompt = '';
+                    switch(request.action) {
+                        case 'describe':
+                            prompt = 'Describe this image in detail';
+                            break;
+                        case 'grab-text':
+                            prompt = 'Extract all text from this image';
+                            break;
+                        case 'extract-translate':
+                            prompt = 'Extract text from the image and translate it to Simplified Chinese';
+                            break;
+                        case 'confirm':
+                            // Just attach the image, no auto-prompt
+                            break;
+                    }
+                    
+                    if (prompt) {
+                        setUserInput(prompt);
+                        // Focus on textarea so user can modify the prompt if needed
+                        setTimeout(() => {
+                            textareaRef.current?.focus();
+                        }, 100);
+                    }
+                });
+            }
+            // Handle legacy screenshot without action
+            else if (request.type === 'screenshotTaken' && request.dataUrl && canAttachFile) {
                 const dataUrlToFile = async (dataUrl: string, fileName: string): Promise<File> => {
                     const res = await fetch(dataUrl);
                     const blob = await res.blob();

@@ -11,7 +11,9 @@
     ],
     "skipLibCheck": true,
     "types": [
-      "node"
+      "node",
+      "react",
+      "react-dom"
     ],
     "moduleResolution": "bundler",
     "isolatedModules": true,
@@ -24,6 +26,19 @@
       ]
     },
     "allowImportingTsExtensions": true,
-    "noEmit": true
-  }
+    "noEmit": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "noImplicitAny": false
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "types/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

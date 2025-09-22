@@ -30,7 +30,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // Forward the message to the side panel to perform the action.
     chrome.runtime.sendMessage(request);
     return; // No async response needed.
-  } 
+  }
   
   // Handles a request from the content script to get the current list of shortcuts.
   else if (request.type === 'getShortcuts') {
@@ -39,15 +39,56 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ shortcuts });
     });
     return true; // Indicates that the response is sent asynchronously.
-  } 
+  }
   
-  // Handles screenshot requests, acting as a router between the side panel and content script.
+  // Handles capture tab request - captures current tab without permission dialog
+  else if (request.type === 'captureTab') {
+    // Get the sender tab ID or use active tab
+    const tabId = sender.tab?.id;
+    if (tabId) {
+      chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+        if (chrome.runtime.lastError) {
+          console.error('AI Sidekick: Failed to capture tab:', chrome.runtime.lastError);
+          sendResponse({ error: chrome.runtime.lastError.message });
+        } else {
+          sendResponse({ dataUrl: dataUrl });
+        }
+      });
+    } else {
+      // Fallback: capture active tab
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+            if (chrome.runtime.lastError) {
+              console.error('AI Sidekick: Failed to capture tab:', chrome.runtime.lastError);
+              sendResponse({ error: chrome.runtime.lastError.message });
+            } else {
+              sendResponse({ dataUrl: dataUrl });
+            }
+          });
+        }
+      });
+    }
+    return true; // Indicates async response
+  }
+  
+  // Handles screenshot requests - capture tab first, then send to content script
   else if (request.type === 'initiateScreenshot') {
-    // Received from side panel. Forward to the active tab's content script.
+    // Received from side panel. Capture the tab first
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0] && tabs[0].id) {
-        // Forward the *same* message type to the content script.
-        chrome.tabs.sendMessage(tabs[0].id, { type: 'initiateScreenshot' });
+        // Capture the visible tab directly here
+        chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+          if (chrome.runtime.lastError) {
+            console.error('AI Sidekick: Failed to capture tab:', chrome.runtime.lastError);
+          } else {
+            // Send the captured screenshot to the content script
+            chrome.tabs.sendMessage(tabs[0].id, {
+              type: 'screenshotCaptured',
+              dataUrl: dataUrl
+            });
+          }
+        });
       }
     });
     return; // No async response needed.

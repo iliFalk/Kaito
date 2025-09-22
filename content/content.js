@@ -235,7 +235,7 @@ function showScreenshotContextMenu(rect, canvas, dpr, cleanup) {
     }, 0);
 }
 
-function initiateScreenshotSelection() {
+function showScreenshotSelection(dataUrl) {
     if (document.getElementById('ai-sidekick-screenshot-overlay')) return;
 
     const overlay = document.createElement('div');
@@ -256,16 +256,11 @@ function initiateScreenshotSelection() {
     overlay.appendChild(instructions);
     document.body.appendChild(overlay);
 
-    let streamRef = null;
     let isSelecting = false;
     let startPos = null;
     const dpr = window.devicePixelRatio || 1;
 
     const cleanup = () => {
-        if (streamRef) {
-            streamRef.getTracks().forEach(track => track.stop());
-            streamRef = null;
-        }
         document.removeEventListener('keydown', handleKeyDown);
         if (overlay.parentNode) {
           overlay.remove();
@@ -279,6 +274,20 @@ function initiateScreenshotSelection() {
     };
     
     document.addEventListener('keydown', handleKeyDown);
+
+    // Load the screenshot into canvas
+    const img = new Image();
+    img.onload = () => {
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
+    };
+    img.src = dataUrl;
 
     const handleMouseDown = (e) => {
         e.preventDefault();
@@ -333,35 +342,10 @@ function initiateScreenshotSelection() {
     overlay.addEventListener('mousedown', handleMouseDown);
     overlay.addEventListener('mousemove', handleMouseMove);
     overlay.addEventListener('mouseup', handleMouseUp);
-    
-    (async () => {
-        try {
-            const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: 'always' }, audio: false });
-            streamRef = stream;
-            const video = document.createElement('video');
-            video.srcObject = stream;
-            video.onloadedmetadata = () => {
-                video.play();
-                const track = stream.getVideoTracks()[0];
-                const { width, height } = track.getSettings();
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                }
-                stream.getTracks().forEach(track => track.stop());
-                streamRef = null;
-            };
-        } catch (err) {
-            console.error("AI Sidekick: Screen capture failed or cancelled.", err);
-            cleanup();
-        }
-    })();
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type === 'initiateScreenshot') {
-        initiateScreenshotSelection();
+    if (request.type === 'screenshotCaptured' && request.dataUrl) {
+        showScreenshotSelection(request.dataUrl);
     }
 });
