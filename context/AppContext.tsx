@@ -35,6 +35,8 @@ interface AppContextType {
 
   filmGrain: number;
   setFilmGrain: (value: number) => void;
+  filmGrainSize: number;
+  setFilmGrainSize: (value: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -57,6 +59,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   
   // Appearance State
   const [filmGrain, setFilmGrain] = useLocalStorage<number>('film_grain_intensity', 0);
+  const [filmGrainSize, setFilmGrainSize] = useLocalStorage<number>('film_grain_size', 100);
 
   const newChat = () => {
     const newId = Date.now().toString();
@@ -183,7 +186,9 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     showContextMenu,
     filmGrain,
     setFilmGrain,
-  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, isContextMenuVisible, contextMenuPosition, selectedText, hideContextMenu, showContextMenu, filmGrain, setFilmGrain]);
+    filmGrainSize,
+    setFilmGrainSize,
+  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, isContextMenuVisible, contextMenuPosition, selectedText, hideContextMenu, showContextMenu, filmGrain, setFilmGrain, filmGrainSize, setFilmGrainSize]);
 
   return (
     <AppContext.Provider value={value}>
