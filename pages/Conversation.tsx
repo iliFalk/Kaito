@@ -166,6 +166,12 @@ const Conversation: React.FC = () => {
         if (!chrome || !chrome.runtime) return;
 
         const handleMessage = (request: any) => {
+            // Handle screenshot error
+            if (request.type === 'screenshotError') {
+                alert(`Screenshot Error: ${request.error}`);
+                return;
+            }
+            
             // Handle screenshot with action from context menu
             if (request.type === 'screenshotAction' && request.dataUrl && canAttachFile) {
                 const dataUrlToFile = async (dataUrl: string, fileName: string): Promise<File> => {
@@ -225,6 +231,45 @@ const Conversation: React.FC = () => {
                 chrome.runtime.onMessage.removeListener(handleMessage);
             }
         };
+    }, [canAttachFile]);
+
+    // Handle paste event for images from clipboard
+    const handlePaste = useCallback(async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+        const items = event.clipboardData?.items;
+        if (!items || !canAttachFile) return;
+
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            
+            // Check if the pasted item is an image
+            if (item.type.indexOf('image') !== -1) {
+                event.preventDefault(); // Prevent default paste behavior for images
+                
+                const blob = item.getAsFile();
+                if (blob) {
+                    // Convert blob to File with a proper filename
+                    const file = new File([blob], `clipboard-screenshot-${Date.now()}.png`, {
+                        type: blob.type || 'image/png'
+                    });
+                    
+                    // Set the file as attached
+                    setAttachedFile(file);
+                    
+                    // Create preview
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setFilePreview(reader.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    // Focus back on textarea
+                    setTimeout(() => {
+                        textareaRef.current?.focus();
+                    }, 100);
+                }
+                break; // Only handle the first image
+            }
+        }
     }, [canAttachFile]);
 
     const handlePasteContext = () => {
@@ -515,8 +560,18 @@ const Conversation: React.FC = () => {
                                 <button onClick={handlePasteContext} className="p-2 hover:bg-layer-02 rounded-lg" aria-label="Paste from clipboard">
                                     <Icon name="LinkIcon" className="w-5 h-5"/>
                                 </button>
-                                <button onClick={startScreenshot} className="p-2 hover:bg-layer-02 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Take screenshot" disabled={!canAttachFile} title={!canAttachFile ? "Screenshots not supported for this model" : "Take screenshot"}>
+                                <button
+                                    onClick={startScreenshot}
+                                    className="p-2 hover:bg-layer-02 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed relative group"
+                                    aria-label="Take screenshot"
+                                    disabled={!canAttachFile}
+                                    title={!canAttachFile ? "Screenshots not supported for this model" : "Take screenshot (AI Sidekick feature)"}>
                                     <Icon name="CameraIcon" className="w-5 h-5"/>
+                                    {canAttachFile && (
+                                        <div className="absolute bottom-full mb-1 left-1/2 transform -translate-x-1/2 bg-layer-03 text-text-primary text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                            AI Sidekick Screenshot
+                                        </div>
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -528,6 +583,7 @@ const Conversation: React.FC = () => {
                             value={userInput}
                             onChange={e => setUserInput(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                            onPaste={handlePaste}
                             placeholder="Enter message..."
                             className="w-full bg-layer-01 p-2 text-base text-text-primary placeholder-text-placeholder resize-none focus:ring-0 focus:outline-none max-h-40"
                             rows={1}

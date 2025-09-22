@@ -46,19 +46,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // Get the sender tab ID or use active tab
     const tabId = sender.tab?.id;
     if (tabId) {
-      chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+      // Get tab info first to check if it's capturable
+      chrome.tabs.get(tabId, (tab) => {
         if (chrome.runtime.lastError) {
-          console.error('AI Sidekick: Failed to capture tab:', chrome.runtime.lastError);
-          sendResponse({ error: chrome.runtime.lastError.message });
-        } else {
-          sendResponse({ dataUrl: dataUrl });
+          sendResponse({ error: 'Failed to get tab info: ' + chrome.runtime.lastError.message });
+          return;
         }
+        
+        chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' }, (dataUrl) => {
+          if (chrome.runtime.lastError) {
+            console.error('AI Sidekick: Failed to capture tab:', chrome.runtime.lastError);
+            sendResponse({ error: chrome.runtime.lastError.message });
+          } else {
+            sendResponse({ dataUrl: dataUrl });
+          }
+        });
       });
     } else {
       // Fallback: capture active tab
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]) {
-          chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+          chrome.tabs.captureVisibleTab(tabs[0].windowId, { format: 'png' }, (dataUrl) => {
             if (chrome.runtime.lastError) {
               console.error('AI Sidekick: Failed to capture tab:', chrome.runtime.lastError);
               sendResponse({ error: chrome.runtime.lastError.message });
@@ -66,32 +74,62 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               sendResponse({ dataUrl: dataUrl });
             }
           });
+        } else {
+          sendResponse({ error: 'No active tab found' });
         }
       });
     }
     return true; // Indicates async response
   }
   
-  // Handles screenshot requests - capture tab first, then send to content script
+  // Handles screenshot requests - use alternative method to avoid permission dialog
   else if (request.type === 'initiateScreenshot') {
-    // Received from side panel. Capture the tab first
+    // Received from side panel. Send request to content script to capture using DOM
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0] && tabs[0].id) {
-        // Capture the visible tab directly here
-        chrome.tabs.captureVisibleTab(null, { format: 'png' }, (dataUrl) => {
+        const tab = tabs[0];
+        
+        // Check if the tab URL is capturable
+        if (tab.url && (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('about:') || tab.url === 'chrome://newtab/')) {
+          chrome.runtime.sendMessage({
+            type: 'screenshotError',
+            error: 'Cannot capture screenshots on Chrome internal pages. Please navigate to a regular website.'
+          });
+          return;
+        }
+        
+        // Send message to content script to initiate DOM-based capture
+        chrome.tabs.sendMessage(tab.id, {
+          type: 'initiateDOMCapture'
+        }, (response) => {
           if (chrome.runtime.lastError) {
-            console.error('AI Sidekick: Failed to capture tab:', chrome.runtime.lastError);
-          } else {
-            // Send the captured screenshot to the content script
-            chrome.tabs.sendMessage(tabs[0].id, {
-              type: 'screenshotCaptured',
-              dataUrl: dataUrl
+            console.error('AI Sidekick: Failed to initiate DOM capture:', chrome.runtime.lastError);
+            
+            // Fallback: Try chrome.tabs.captureVisibleTab (this might show permission dialog)
+            console.log('AI Sidekick: Attempting fallback capture method...');
+            chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' }, (dataUrl) => {
+              if (chrome.runtime.lastError) {
+                chrome.runtime.sendMessage({
+                  type: 'screenshotError',
+                  error: `Screen capture failed: ${chrome.runtime.lastError.message}. Try refreshing the page.`
+                });
+              } else {
+                chrome.tabs.sendMessage(tab.id, {
+                  type: 'screenshotCaptured',
+                  dataUrl: dataUrl
+                });
+              }
             });
           }
         });
+      } else {
+        chrome.runtime.sendMessage({
+          type: 'screenshotError',
+          error: 'No active tab found'
+        });
       }
     });
-    return; // No async response needed.
+    return;
   }
 
   else if (request.type === 'screenshotAction') {

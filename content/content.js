@@ -347,5 +347,131 @@ function showScreenshotSelection(dataUrl) {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'screenshotCaptured' && request.dataUrl) {
         showScreenshotSelection(request.dataUrl);
+    } else if (request.type === 'initiateDOMCapture') {
+        // Show options to the user
+        if (window.aiSidekickCapture) {
+            // Create a choice dialog
+            const showCaptureOptions = () => {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 2147483647;
+                `;
+                
+                const dialog = document.createElement('div');
+                dialog.style.cssText = `
+                    background: white;
+                    padding: 30px;
+                    border-radius: 12px;
+                    max-width: 500px;
+                    text-align: center;
+                    font-family: Arial, sans-serif;
+                `;
+                
+                dialog.innerHTML = `
+                    <h2 style="margin: 0 0 20px 0; color: #333;">Choose Screenshot Method</h2>
+                    <p style="color: #666; margin-bottom: 30px;">Select how you want to capture the screen:</p>
+                    
+                    <button id="ai-sidekick-preview-mode" style="
+                        display: block;
+                        width: 100%;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        background: #0062ff;
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        cursor: pointer;
+                    ">
+                        📋 Preview Mode (No Permission Needed)
+                        <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">
+                            Shows a grid preview - good for area selection
+                        </div>
+                    </button>
+                    
+                    <button id="ai-sidekick-screen-capture" style="
+                        display: block;
+                        width: 100%;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        background: #4CAF50;
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        cursor: pointer;
+                    ">
+                        📸 Full Screen Capture (Permission Required)
+                        <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">
+                            Captures actual page content - shows permission dialog
+                        </div>
+                    </button>
+                    
+                    <button id="ai-sidekick-cancel" style="
+                        display: block;
+                        width: 100%;
+                        padding: 15px;
+                        background: #f44336;
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        cursor: pointer;
+                    ">
+                        Cancel
+                    </button>
+                `;
+                
+                overlay.appendChild(dialog);
+                document.body.appendChild(overlay);
+                
+                // Handle button clicks
+                document.getElementById('ai-sidekick-preview-mode').onclick = () => {
+                    overlay.remove();
+                    window.aiSidekickCapture.captureUsingDOMtoCanvas()
+                        .then(dataUrl => {
+                            showScreenshotSelection(dataUrl);
+                            sendResponse({ success: true });
+                        })
+                        .catch(error => {
+                            console.error('AI Sidekick: Preview capture failed:', error);
+                            sendResponse({ error: error.message });
+                        });
+                };
+                
+                document.getElementById('ai-sidekick-screen-capture').onclick = () => {
+                    overlay.remove();
+                    window.aiSidekickCapture.captureUsingGetDisplayMedia()
+                        .then(dataUrl => {
+                            showScreenshotSelection(dataUrl);
+                            sendResponse({ success: true });
+                        })
+                        .catch(error => {
+                            console.error('AI Sidekick: Screen capture failed:', error);
+                            alert('Screen capture was cancelled or denied. You can try the Preview Mode instead.');
+                            sendResponse({ error: error.message });
+                        });
+                };
+                
+                document.getElementById('ai-sidekick-cancel').onclick = () => {
+                    overlay.remove();
+                    sendResponse({ cancelled: true });
+                };
+            };
+            
+            showCaptureOptions();
+        } else {
+            sendResponse({ error: 'Screenshot capture not available' });
+        }
+        return true; // Keep the message channel open for async response
     }
 });
