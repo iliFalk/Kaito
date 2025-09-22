@@ -130,11 +130,11 @@ const Options = () => {
                 React.createElement('h2', { className: "text-lg font-bold mb-2 text-text-secondary" }, "Context Menu Preview"),
                 React.createElement('p', { className: "text-sm text-text-placeholder mb-4" }, "This is how the context menu will look when you select text on a webpage. The changes you make below will be reflected here live."),
                 React.createElement('div', { className: "bg-black/50 p-8 rounded-lg flex justify-center items-center" },
-                    React.createElement('div', { className: "bg-layer-01/90 backdrop-blur-sm rounded-lg shadow-lg p-1 flex flex-col gap-1" },
+                    React.createElement('div', { className: "bg-layer-01/90 backdrop-blur-sm rounded-lg shadow-lg p-1 flex flex-row gap-1" },
                         React.createElement('button', { title: "Quote Text", className: "group relative p-2 rounded-md text-text-secondary hover:bg-layer-hover/70 hover:text-text-primary transition-colors" },
                             React.createElement(Icon, { name: "ChatBubbleLeftRightIcon", className: "w-5 h-5" })
                         ),
-                        React.createElement('div', { className: "h-px bg-border-strong/50 my-1 mx-1" }),
+                        React.createElement('div', { className: "w-px bg-border-strong/50 mx-1 my-2" }),
                         ...shortcuts.slice(0, 4).map(shortcut => (
                             React.createElement('button', { key: shortcut.id, title: shortcut.title, className: "group relative p-2 rounded-md text-text-secondary hover:bg-layer-hover/70 hover:text-text-primary transition-colors" },
                                 React.createElement(Icon, { name: shortcut.icon, className: "w-5 h-5" })
