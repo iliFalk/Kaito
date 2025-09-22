@@ -185,7 +185,7 @@ const NeuralAnimation = ({ className }) => {
         uTime: { value: 0 },
       },
       transparent: true,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
       depthWrite: false,
     });
 
