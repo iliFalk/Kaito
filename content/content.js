@@ -125,6 +125,116 @@ document.addEventListener('mousedown', (event) => {
 
 // --- Screenshot Functionality ---
 
+function showScreenshotContextMenu(rect, canvas, dpr, cleanup) {
+    const contextMenu = document.createElement('div');
+    contextMenu.id = 'ai-sidekick-screenshot-context-menu';
+    contextMenu.innerHTML = `
+        <button class="action-btn" data-action="describe">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+            </svg>
+            Describe
+        </button>
+        <button class="action-btn" data-action="grab-text">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+            </svg>
+            Grab Text
+        </button>
+        <button class="action-btn" data-action="extract-translate">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802"/>
+            </svg>
+            Extract & Translate
+        </button>
+        <div class="separator"></div>
+        <button class="confirm-btn" data-action="confirm">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+            </svg>
+        </button>
+        <button class="cancel-btn" data-action="cancel">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    `;
+
+    // Position the menu near the selected area
+    const menuRect = contextMenu.getBoundingClientRect();
+    let top = rect.y + rect.h + 10;
+    let left = rect.x + rect.w / 2 - menuRect.width / 2;
+
+    // Boundary checks
+    if (top + menuRect.height > window.innerHeight) {
+        top = rect.y - menuRect.height - 10;
+    }
+    if (left < 10) {
+        left = 10;
+    }
+    if (left + menuRect.width > window.innerWidth) {
+        left = window.innerWidth - menuRect.width - 10;
+    }
+
+    contextMenu.style.top = `${top}px`;
+    contextMenu.style.left = `${left}px`;
+
+    document.body.appendChild(contextMenu);
+
+    // Handle button clicks
+    contextMenu.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const button = e.target.closest('.action-btn, .confirm-btn, .cancel-btn');
+        if (!button) return;
+
+        const action = button.dataset.action;
+
+        if (action === 'cancel') {
+            contextMenu.remove();
+            cleanup();
+            return;
+        }
+
+        // Crop the image
+        const cropCanvas = document.createElement('canvas');
+        cropCanvas.width = rect.w * dpr;
+        cropCanvas.height = rect.h * dpr;
+        const cropCtx = cropCanvas.getContext('2d');
+
+        if (cropCtx) {
+            cropCtx.drawImage(
+                canvas,
+                rect.x * dpr, rect.y * dpr, rect.w * dpr, rect.h * dpr,
+                0, 0, rect.w * dpr, rect.h * dpr
+            );
+            const dataUrl = cropCanvas.toDataURL('image/png');
+
+            // Send message with action type
+            chrome.runtime.sendMessage({
+                type: 'screenshotAction',
+                action: action,
+                dataUrl: dataUrl
+            });
+        }
+
+        contextMenu.remove();
+        cleanup();
+    });
+
+    // Remove menu on outside click
+    const handleOutsideClick = (e) => {
+        if (!contextMenu.contains(e.target)) {
+            contextMenu.remove();
+            cleanup();
+        }
+    };
+
+    setTimeout(() => {
+        document.addEventListener('click', handleOutsideClick);
+    }, 0);
+}
+
 function initiateScreenshotSelection() {
     if (document.getElementById('ai-sidekick-screenshot-overlay')) return;
 
@@ -205,32 +315,19 @@ function initiateScreenshotSelection() {
 
         const endPos = { x: e.clientX, y: e.clientY };
         const rect = {
-            x: Math.min(startPos.x, endPos.x) * dpr,
-            y: Math.min(startPos.y, endPos.y) * dpr,
-            w: Math.abs(startPos.x - endPos.x) * dpr,
-            h: Math.abs(startPos.y - endPos.y) * dpr,
+            x: Math.min(startPos.x, endPos.x),
+            y: Math.min(startPos.y, endPos.y),
+            w: Math.abs(startPos.x - endPos.x),
+            h: Math.abs(startPos.y - endPos.y),
         };
 
         if (rect.w < 10 || rect.h < 10) {
             cleanup();
             return;
         }
-        
-        const cropCanvas = document.createElement('canvas');
-        cropCanvas.width = rect.w;
-        cropCanvas.height = rect.h;
-        const cropCtx = cropCanvas.getContext('2d');
-        
-        if(cropCtx) {
-            cropCtx.drawImage(
-                canvas,
-                rect.x, rect.y, rect.w, rect.h,
-                0, 0, rect.w, rect.h
-            );
-            const dataUrl = cropCanvas.toDataURL('image/png');
-            chrome.runtime.sendMessage({ type: 'screenshotTaken', dataUrl: dataUrl });
-        }
-        cleanup();
+
+        // Show context menu instead of immediately taking screenshot
+        showScreenshotContextMenu(rect, canvas, dpr, cleanup);
     };
     
     overlay.addEventListener('mousedown', handleMouseDown);

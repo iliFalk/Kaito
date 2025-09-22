@@ -161,33 +161,6 @@ const Conversation: React.FC = () => {
         }
     };
 
-    useEffect(() => {
-        const chrome = (window as any).chrome;
-        if (!chrome || !chrome.runtime) return;
-
-        const handleMessage = (request: any) => {
-            if (request.type === 'screenshotTaken' && request.dataUrl && canAttachFile) {
-                const dataUrlToFile = async (dataUrl: string, fileName: string): Promise<File> => {
-                    const res = await fetch(dataUrl);
-                    const blob = await res.blob();
-                    return new File([blob], fileName, { type: blob.type });
-                };
-
-                dataUrlToFile(request.dataUrl, `screenshot-${Date.now()}.png`).then(file => {
-                    setAttachedFile(file);
-                    setFilePreview(request.dataUrl);
-                });
-            }
-        };
-
-        chrome.runtime.onMessage.addListener(handleMessage);
-        return () => {
-            if (chrome.runtime && chrome.runtime.onMessage) {
-                chrome.runtime.onMessage.removeListener(handleMessage);
-            }
-        };
-    }, [canAttachFile]);
-
     const handlePasteContext = () => {
         const chrome = (window as any).chrome;
         if (typeof chrome !== 'undefined' && chrome.tabs) {
@@ -295,10 +268,68 @@ const Conversation: React.FC = () => {
             setIsLoading(false);
         }
     }, [
-        userInput, attachedFile, filePreview, quotedText, pageContext, 
-        currentConversationId, addMessage, updateStreamingMessage, 
+        userInput, attachedFile, filePreview, quotedText, pageContext,
+        currentConversationId, addMessage, updateStreamingMessage,
         getConversationHistory, models, activeModel
     ]);
+
+    useEffect(() => {
+        const chrome = (window as any).chrome;
+        if (!chrome || !chrome.runtime) return;
+
+        const handleMessage = (request: any) => {
+            if (request.type === 'screenshotAction' && request.dataUrl && canAttachFile) {
+                const dataUrlToFile = async (dataUrl: string, fileName: string): Promise<File> => {
+                    const res = await fetch(dataUrl);
+                    const blob = await res.blob();
+                    return new File([blob], fileName, { type: blob.type });
+                };
+
+                dataUrlToFile(request.dataUrl, `screenshot-${Date.now()}.png`).then(file => {
+                    setAttachedFile(file);
+                    setFilePreview(request.dataUrl);
+
+                    // Perform action based on the selected option
+                    let prompt = '';
+                    switch (request.action) {
+                        case 'describe':
+                            prompt = 'Describe this image';
+                            break;
+                        case 'grab-text':
+                            prompt = 'Extract all text from this image';
+                            break;
+                        case 'extract-translate':
+                            prompt = 'Extract text from this image and translate it to Simplified Chinese';
+                            break;
+                        default:
+                            return; // Don't send if no valid action
+                    }
+
+                    // Automatically send the message with the selected action
+                    handleSend({ prompt });
+                });
+            } else if (request.type === 'screenshotTaken' && request.dataUrl && canAttachFile) {
+                // Fallback for old behavior
+                const dataUrlToFile = async (dataUrl: string, fileName: string): Promise<File> => {
+                    const res = await fetch(dataUrl);
+                    const blob = await res.blob();
+                    return new File([blob], fileName, { type: blob.type });
+                };
+
+                dataUrlToFile(request.dataUrl, `screenshot-${Date.now()}.png`).then(file => {
+                    setAttachedFile(file);
+                    setFilePreview(request.dataUrl);
+                });
+            }
+        };
+
+        chrome.runtime.onMessage.addListener(handleMessage);
+        return () => {
+            if (chrome.runtime && chrome.runtime.onMessage) {
+                chrome.runtime.onMessage.removeListener(handleMessage);
+            }
+        };
+    }, [canAttachFile, handleSend]);
 
     useEffect(() => {
         if (pendingShortcutAction) {
@@ -495,18 +526,18 @@ const Conversation: React.FC = () => {
                             disabled={isLoading}
                         />
                         <div className="relative flex-shrink-0" ref={actionsDropdownRef}>
-                            <div className="flex items-center bg-layer-01 rounded-xl shadow-sm border border-border-strong/80 overflow-hidden">
+                            <div className="flex items-center bg-layer-01 rounded-xl shadow-sm border border-border-strong/80 overflow-hidden hover:bg-layer-02 transition-colors">
                                 <button
                                     onClick={() => handleSend()}
                                     disabled={isLoading || (!userInput.trim() && !attachedFile && !quotedText)}
-                                    className="p-2.5 text-interactive disabled:text-text-placeholder hover:bg-layer-02 transition-colors focus:outline-none focus:ring-2 focus:ring-focus"
+                                    className="p-2.5 text-interactive disabled:text-text-placeholder transition-colors focus:outline-none focus:ring-2 focus:ring-focus"
                                     aria-label="Send message">
                                     <Icon name="PaperAirplaneIcon" className="w-5 h-5" />
                                 </button>
                                 <div className="w-px self-stretch bg-border-strong/80"></div>
                                 <button
                                     onClick={() => setIsActionsDropdownOpen(prev => !prev)}
-                                    className="p-2 text-text-secondary hover:bg-layer-02 transition-colors focus:outline-none focus:ring-2 focus:ring-focus"
+                                    className="p-2 text-text-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-focus"
                                     aria-label="Quick actions"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">

@@ -51,8 +51,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     });
     return; // No async response needed.
-  } 
-  
+  }
+
+  else if (request.type === 'screenshotAction') {
+    // Received from content script with action type. Forward to the side panel.
+    chrome.runtime.sendMessage({
+      type: 'screenshotAction',
+      action: request.action,
+      dataUrl: request.dataUrl
+    });
+    return; // No async response needed.
+  }
+
   else if (request.type === 'screenshotTaken') {
     // Received from content script. Forward to the side panel.
     // Forward the *same* message type to the side panel.
