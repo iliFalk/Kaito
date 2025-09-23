@@ -27,8 +27,12 @@ interface AppContextType {
   setPendingQuotedText: (text: string) => void;
   clearPendingQuotedText: () => void;
 
-  filmGrain: number;
-  setFilmGrain: (value: number) => void;
+  grainAmount: number;
+  setGrainAmount: (value: number) => void;
+  grainSize: number;
+  setGrainSize: (value: number) => void;
+  grainRoughness: number;
+  setGrainRoughness: (value: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -45,7 +49,9 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [pendingQuotedText, setPendingQuotedTextState] = useState<string | null>(null);
 
   // Appearance State
-  const [filmGrain, setFilmGrain] = useLocalStorage<number>('film_grain_intensity', 0);
+  const [grainAmount, setGrainAmount] = useLocalStorage<number>('grain_amount', 10);
+  const [grainSize, setGrainSize] = useLocalStorage<number>('grain_size', 50);
+  const [grainRoughness, setGrainRoughness] = useLocalStorage<number>('grain_roughness', 70);
 
 
   const newChat = () => {
@@ -156,9 +162,13 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     pendingQuotedText,
     setPendingQuotedText,
     clearPendingQuotedText,
-    filmGrain,
-    setFilmGrain,
-  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, filmGrain, setFilmGrain]);
+    grainAmount,
+    setGrainAmount,
+    grainSize,
+    setGrainSize,
+    grainRoughness,
+    setGrainRoughness,
+  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, grainAmount, setGrainAmount, grainSize, setGrainSize, grainRoughness, setGrainRoughness]);
 
   return (
     <AppContext.Provider value={value}>
