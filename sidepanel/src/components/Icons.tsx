@@ -2,6 +2,7 @@ import React from 'react';
 
 export const Icon = ({ name, className }: { name: string; className?: string }) => {
   const icons: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } = {
+    AppIcon: AppIcon,
     HomeIcon: (props) => (
       <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
     ),
@@ -127,4 +128,18 @@ export const UserIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 
 export const SparklesIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" /></svg>
+);
+
+export const AppIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg {...props} width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="ultramarineGlow" cx="50%" cy="50%" r="80%">
+        <stop offset="0%" style={{stopColor:'#4169e1', stopOpacity:1}} />
+        <stop offset="30%" style={{stopColor:'#4169e1', stopOpacity:0.8}} />
+        <stop offset="70%" style={{stopColor:'#4169e1', stopOpacity:0.3}} />
+        <stop offset="100%" style={{stopColor:'#4169e1', stopOpacity:0}} />
+      </radialGradient>
+    </defs>
+    <circle cx="8" cy="8" r="7.5" fill="url(#ultramarineGlow)" stroke="#1e40af" strokeWidth="0.5"/>
+  </svg>
 );

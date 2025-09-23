@@ -1,6 +1,18 @@
 import React from 'react';
+export const AppIcon = (props) => React.createElement('svg', {...props, width:"16", height:"16", viewBox:"0 0 16 16", xmlns:"http://www.w3.org/2000/svg"},
+  React.createElement('defs', null,
+    React.createElement('radialGradient', {id:'ultramarineGlow', cx:'50%', cy:'50%', r:'80%'},
+      React.createElement('stop', {offset:'0%', style:{stopColor:'#4169e1', stopOpacity:1}}),
+      React.createElement('stop', {offset:'30%', style:{stopColor:'#4169e1', stopOpacity:0.8}}),
+      React.createElement('stop', {offset:'70%', style:{stopColor:'#4169e1', stopOpacity:0.3}}),
+      React.createElement('stop', {offset:'100%', style:{stopColor:'#4169e1', stopOpacity:0}})
+    )
+  ),
+  React.createElement('circle', {cx:'8', cy:'8', r:'7.5', fill:'url(#ultramarineGlow)', stroke:'#1e40af', strokeWidth:'0.5'})
+);
 export const Icon = ({ name, className }) => {
   const icons = {
+    AppIcon: AppIcon,
     HomeIcon: (props) => (
       React.createElement('svg', {...props, xmlns:"http://www.w3.org/2000/svg", fill:"none", viewBox:"0 0 24 24", stroke:"currentColor"}, React.createElement('path', {strokeLinecap:'round', strokeLinejoin:'round', strokeWidth:2, d:"M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"}))
     ),

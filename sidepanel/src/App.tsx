@@ -135,7 +135,7 @@ const Header: React.FC<{ onHistoryClick: () => void; }> = ({ onHistoryClick }) =
       ) : (
         <div className="flex items-center gap-3">
           {title === 'Jain' && location.pathname === PANEL_ROUTES.CONVERSATION ? (
-            <NeuralAnimation />
+            <Icon name="AppIcon" className="w-8 h-8" />
           ) : (
             <h1 className="text-xl font-bold text-text-primary">{title}</h1>
           )}
