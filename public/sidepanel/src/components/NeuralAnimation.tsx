@@ -130,10 +130,10 @@ const fragmentShader = `
   varying vec3 vPosition;
 
   void main() {
-    // Ethereal blue color palette
-    vec3 color1 = vec3(0.0, 0.1, 0.4); // Deep space blue
-    vec3 color2 = vec3(0.1, 0.5, 1.0); // Bright electric blue
-    vec3 color3 = vec3(0.8, 1.0, 1.0); // Luminous cyan highlight
+    // Dark grayscale palette
+    vec3 color1 = vec3(0.05, 0.05, 0.05); // Very dark gray (base)
+    vec3 color2 = vec3(0.15, 0.15, 0.15); // Medium dark gray
+    vec3 color3 = vec3(0.25, 0.25, 0.25); // Light dark gray (highlight)
 
     // Fresnel effect for the glowing edges
     vec3 viewDirection = normalize(-vPosition);
