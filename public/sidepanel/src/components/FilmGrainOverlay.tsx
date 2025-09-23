@@ -2,27 +2,43 @@ import React from 'react';
 import { useAppContext } from '../context/AppContext';
 
 const FilmGrainOverlay: React.FC = () => {
-  const { filmGrain } = useAppContext();
+  // Support both state shapes:
+  // - filmGrain (0..0.2) single slider
+  // - grainAmount/Size/Roughness (0..100) three sliders
+  const ctx: any = useAppContext();
 
-  if (filmGrain <= 0) {
-    return null;
-  }
+  const filmGrain: number | undefined = ctx.filmGrain;
+  const grainAmount: number | undefined = ctx.grainAmount;
+  const grainSize: number | undefined = ctx.grainSize;
+  const grainRoughness: number | undefined = ctx.grainRoughness;
+
+  // Compute opacity
+  const opacity = filmGrain !== undefined
+    ? Math.max(0, Math.min(1, filmGrain * 5)) // scale 0..0.2 -> 0..1
+    : Math.max(0, Math.min(1, (grainAmount ?? 50) / 100));
+
+  // Always render overlay; opacity may be 0 if user turns it off
+  const size = Math.max(1, grainSize ?? 50);
+  const baseFrequency = Math.max(0.1, Math.min(1, ((grainRoughness ?? 50) / 100) * 0.9 + 0.1));
+
+  // Use SVG noise to avoid shipping a massive base64 blob
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" viewBox="0 0 512 512"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="${baseFrequency}" numOctaves="10" stitchTiles="stitch" result="noise" /><feColorMatrix in="noise" type="matrix" values="0.299 0.587 0.114 0 0 0.299 0.587 0.114 0 0 0.299 0.587 0.114 0 0 0 0 0 1 0" result="grayscale" /><feComponentTransfer in="grayscale"><feFuncR type="discrete" tableValues="0 1"/><feFuncG type="discrete" tableValues="0 1"/><feFuncB type="discrete" tableValues="0 1"/></feComponentTransfer></filter><rect width="100%" height="100%" filter="url(#noise)" /></svg>`;
+  const base64 = btoa(svg);
 
   return (
     <>
       <style>{`
-        .film-grain-overlay::before {
-          content: "";
+        .film-grain-overlay {
           position: fixed;
           top: -50%;
           left: -50%;
           width: 200%;
           height: 200%;
-          background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiPgo8ZmlsdGVyIGlkPSJub2lzZSI+CjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjciIG51bU9jdGF2ZXM9IjEwIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIiAvPgo8L2ZpbHRlcj4KPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI25vaXNlKSIgLz4KPC9zdmc+');
-          animation: grain 0.8s steps(10) infinite;
+          background-image: url('data:image/svg+xml;base64,${base64}');
+          background-size: ${size}px ${size}px;
           pointer-events: none;
           z-index: 9999;
-          opacity: ${filmGrain};
+          opacity: ${opacity};
         }
 
         @keyframes grain {

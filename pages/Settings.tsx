@@ -5,15 +5,7 @@ import { Icon } from '../components/Icons';
 import { useAppContext } from '../context/AppContext';
 
 const Settings: React.FC = () => {
-  const { filmGrain, setFilmGrain, filmGrainSize, setFilmGrainSize } = useAppContext();
-
-  const handleGrainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilmGrain(parseFloat(e.target.value));
-  };
-
-  const handleGrainSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilmGrainSize(parseInt(e.target.value));
-  };
+  const { grainAmount = 80, setGrainAmount, grainSize = 50, setGrainSize, grainRoughness = 50, setGrainRoughness } = useAppContext();
 
   return (
     <div className="p-4 h-full">
@@ -44,36 +36,57 @@ const Settings: React.FC = () => {
         <h2 className="text-base font-semibold text-text-primary mb-3">Appearance</h2>
         <div className="space-y-4">
           <div className="p-4 bg-layer-01 rounded-lg border border-border-strong">
-            <label htmlFor="film-grain-slider" className="flex justify-between items-center text-sm font-medium text-text-primary mb-2">
-              <span>Film Grain Intensity</span>
-              <span className="font-mono text-xs bg-layer-02 px-2 py-1 rounded">{Math.round(filmGrain * 100)}%</span>
-            </label>
-            <input
-              id="film-grain-slider"
-              type="range"
-              min="0"
-              max="0.2"
-              step="0.01"
-              value={filmGrain}
-              onChange={handleGrainChange}
-              className="w-full h-2 bg-layer-03 rounded-lg appearance-none cursor-pointer accent-interactive"
-            />
-          </div>
-          <div className="p-4 bg-layer-01 rounded-lg border border-border-strong">
-            <label htmlFor="film-grain-size-slider" className="flex justify-between items-center text-sm font-medium text-text-primary mb-2">
-              <span>Film Grain Size</span>
-              <span className="font-mono text-xs bg-layer-02 px-2 py-1 rounded">{filmGrainSize}px</span>
-            </label>
-            <input
-              id="film-grain-size-slider"
-              type="range"
-              min="50"
-              max="300"
-              step="10"
-              value={filmGrainSize}
-              onChange={handleGrainSizeChange}
-              className="w-full h-2 bg-layer-03 rounded-lg appearance-none cursor-pointer accent-interactive"
-            />
+            <h3 className="text-sm font-medium text-text-primary mb-3">Grain</h3>
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="grain-amount-slider" className="flex justify-between items-center text-sm font-medium text-text-primary mb-2">
+                  <span>Amount</span>
+                  <span className="font-mono text-xs bg-layer-02 px-2 py-1 rounded">{grainAmount}</span>
+                </label>
+                <input
+                  id="grain-amount-slider"
+                  type="range"
+                  min="1"
+                  max="100"
+                  step="1"
+                  value={grainAmount}
+                  onChange={(e) => setGrainAmount(parseInt(e.target.value))}
+                  className="w-full h-2 bg-layer-03 rounded-lg appearance-none cursor-pointer accent-interactive"
+                />
+              </div>
+              <div>
+                <label htmlFor="grain-size-slider" className="flex justify-between items-center text-sm font-medium text-text-primary mb-2">
+                  <span>Size</span>
+                  <span className="font-mono text-xs bg-layer-02 px-2 py-1 rounded">{grainSize}</span>
+                </label>
+                <input
+                  id="grain-size-slider"
+                  type="range"
+                  min="1"
+                  max="100"
+                  step="1"
+                  value={grainSize}
+                  onChange={(e) => setGrainSize(parseInt(e.target.value))}
+                  className="w-full h-2 bg-layer-03 rounded-lg appearance-none cursor-pointer accent-interactive"
+                />
+              </div>
+              <div>
+                <label htmlFor="grain-roughness-slider" className="flex justify-between items-center text-sm font-medium text-text-primary mb-2">
+                  <span>Roughness</span>
+                  <span className="font-mono text-xs bg-layer-02 px-2 py-1 rounded">{grainRoughness}</span>
+                </label>
+                <input
+                  id="grain-roughness-slider"
+                  type="range"
+                  min="1"
+                  max="100"
+                  step="1"
+                  value={grainRoughness}
+                  onChange={(e) => setGrainRoughness(parseInt(e.target.value))}
+                  className="w-full h-2 bg-layer-03 rounded-lg appearance-none cursor-pointer accent-interactive"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

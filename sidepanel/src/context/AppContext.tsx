@@ -49,9 +49,9 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [pendingQuotedText, setPendingQuotedTextState] = useState<string | null>(null);
 
   // Appearance State
-  const [grainAmount, setGrainAmount] = useLocalStorage<number>('grain_amount', 10);
+  const [grainAmount, setGrainAmount] = useLocalStorage<number>('grain_amount', 50);
   const [grainSize, setGrainSize] = useLocalStorage<number>('grain_size', 50);
-  const [grainRoughness, setGrainRoughness] = useLocalStorage<number>('grain_roughness', 70);
+  const [grainRoughness, setGrainRoughness] = useLocalStorage<number>('grain_roughness', 50);
 
 
   const newChat = () => {

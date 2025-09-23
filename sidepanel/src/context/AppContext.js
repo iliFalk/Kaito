@@ -16,8 +16,10 @@ export const AppContextProvider = ({ children }) => {
   // Quoted Text State
   const [pendingQuotedText, setPendingQuotedTextState] = useState(null);
   
-  // Appearance State
-  const [filmGrain, setFilmGrain] = useLocalStorage('film_grain_intensity', 0);
+  // Appearance State (3-slider model to match public/sidepanel path)
+  const [grainAmount, setGrainAmount] = useLocalStorage('grain_amount', 50);
+  const [grainSize, setGrainSize] = useLocalStorage('grain_size', 50);
+  const [grainRoughness, setGrainRoughness] = useLocalStorage('grain_roughness', 50);
 
   const newChat = () => {
     const newId = Date.now().toString();
@@ -127,9 +129,13 @@ export const AppContextProvider = ({ children }) => {
     pendingQuotedText,
     setPendingQuotedText,
     clearPendingQuotedText,
-    filmGrain,
-    setFilmGrain,
-  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, filmGrain, setFilmGrain]);
+    grainAmount,
+    setGrainAmount,
+    grainSize,
+    setGrainSize,
+    grainRoughness,
+    setGrainRoughness,
+  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, grainAmount, setGrainAmount, grainSize, setGrainSize, grainRoughness, setGrainRoughness]);
 
   return (
     React.createElement(AppContext.Provider, { value: value },

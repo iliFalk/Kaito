@@ -33,10 +33,12 @@ interface AppContextType {
   hideContextMenu: () => void;
   showContextMenu: (position: { top: number; left: number }, text: string) => void;
 
-  filmGrain: number;
-  setFilmGrain: (value: number) => void;
-  filmGrainSize: number;
-  setFilmGrainSize: (value: number) => void;
+  grainAmount: number;
+  setGrainAmount: (value: number) => void;
+  grainSize: number;
+  setGrainSize: (value: number) => void;
+  grainRoughness: number;
+  setGrainRoughness: (value: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -58,8 +60,9 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [selectedText, setSelectedText] = useState('');
   
   // Appearance State
-  const [filmGrain, setFilmGrain] = useLocalStorage<number>('film_grain_intensity', 0);
-  const [filmGrainSize, setFilmGrainSize] = useLocalStorage<number>('film_grain_size', 100);
+  const [grainAmount, setGrainAmount] = useLocalStorage<number>('grain_amount', 80);
+  const [grainSize, setGrainSize] = useLocalStorage<number>('grain_size', 50);
+  const [grainRoughness, setGrainRoughness] = useLocalStorage<number>('grain_roughness', 50);
 
   const newChat = () => {
     const newId = Date.now().toString();
@@ -184,11 +187,13 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     selectedText,
     hideContextMenu,
     showContextMenu,
-    filmGrain,
-    setFilmGrain,
-    filmGrainSize,
-    setFilmGrainSize,
-  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, isContextMenuVisible, contextMenuPosition, selectedText, hideContextMenu, showContextMenu, filmGrain, setFilmGrain, filmGrainSize, setFilmGrainSize]);
+    grainAmount,
+    setGrainAmount,
+    grainSize,
+    setGrainSize,
+    grainRoughness,
+    setGrainRoughness,
+  }), [searchText, conversations, currentConversationId, startConversationWithShortcut, pendingShortcutAction, clearPendingShortcutAction, pendingQuotedText, setPendingQuotedText, clearPendingQuotedText, isContextMenuVisible, contextMenuPosition, selectedText, hideContextMenu, showContextMenu, grainAmount, setGrainAmount, grainSize, setGrainSize, grainRoughness, setGrainRoughness]);
 
   return (
     <AppContext.Provider value={value}>
