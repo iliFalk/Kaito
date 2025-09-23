@@ -152,6 +152,67 @@ const Conversation: React.FC = () => {
         if(fileInputRef.current) fileInputRef.current.value = "";
     };
 
+    const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+        const dt = e.clipboardData;
+        if (!dt) return;
+
+        // Prefer DataTransferItem API for pasted images
+        if (canAttachFile && dt.items && dt.items.length) {
+            for (let i = 0; i < dt.items.length; i++) {
+                const item = dt.items[i];
+                if (item.kind === 'file') {
+                    const file = item.getAsFile();
+                    if (file && file.type.startsWith('image/')) {
+                        setAttachedFile(file);
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            setFilePreview(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                        e.preventDefault();
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Fallback to files list
+        if (canAttachFile && dt.files && dt.files.length) {
+            const file = dt.files[0];
+            if (file && file.type.startsWith('image/')) {
+                setAttachedFile(file);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setFilePreview(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+                e.preventDefault();
+                return;
+            }
+        }
+
+        // Support data URL pasted as text
+        const text = dt.getData('text/plain');
+        if (canAttachFile && text && text.startsWith('data:image/')) {
+            try {
+                const res = await fetch(text);
+                const blob = await res.blob();
+                const ext = blob.type.split('/')[1] || 'png';
+                const file = new File([blob], `pasted-image.${ext}`, { type: blob.type });
+                setAttachedFile(file);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setFilePreview(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+                e.preventDefault();
+                return;
+            } catch {
+                // If fetch fails, allow default paste behavior
+            }
+        }
+    };
+    
     const startScreenshot = () => {
         const chrome = (window as any).chrome;
         if (chrome && chrome.runtime) {
@@ -516,6 +577,7 @@ const Conversation: React.FC = () => {
                             ref={textareaRef}
                             value={userInput}
                             onChange={e => setUserInput(e.target.value)}
+                            onPaste={handlePaste}
                             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                             placeholder="Enter message..."
                             className="w-full bg-layer-01 p-2 text-base text-text-primary placeholder-text-placeholder resize-none focus:ring-0 focus:outline-none max-h-40"
