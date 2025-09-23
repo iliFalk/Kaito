@@ -197,23 +197,23 @@ export function withErrorBoundary<P extends object>(
 
 // Usage example:
 /*
-// In your App.tsx or main component:
-import { ErrorBoundary, CustomErrorFallback } from './components/ErrorBoundary';
+ // In your App.tsx or main component:
+ import { ErrorBoundary, CustomErrorFallback } from './components/ErrorBoundary';
 
-function App() {
-  return (
-    <ErrorBoundary 
-      fallback={CustomErrorFallback}
-      onError={(error, info) => {
-        // Optional: Send to external logging service
-        console.error('App error:', error, info);
-      }}
-    >
-      <YourAppContent />
-    </ErrorBoundary>
-  );
-}
+ function App() {
+   return (
+     <ErrorBoundary 
+       fallback={CustomErrorFallback}
+       onError={(error, info) => {
+         // Optional: Send to external logging service
+         console.error('App error:', error, info);
+       }}
+     >
+       <YourAppContent />
+     </ErrorBoundary>
+   );
+ }
 
-// Or use the HOC:
-const SafeComponent = withErrorBoundary(YourComponent, CustomErrorFallback);
-*/
+ // Or use the HOC:
+ const SafeComponent = withErrorBoundary(YourComponent, CustomErrorFallback);
+ */

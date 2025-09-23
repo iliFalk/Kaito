@@ -18,7 +18,6 @@ export default defineConfig(({ mode }) => {
       build: {
         rollupOptions: {
           input: {
-            main: path.resolve(__dirname, 'index.html'),
             sidepanel: path.resolve(__dirname, 'sidepanel/index.html'),
           },
           output: {
