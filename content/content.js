@@ -17,7 +17,7 @@ function removeShortcutToolbar() {
     }
 }
 
-async function showShortcutToolbar(range, text) {
+async function showShortcutToolbar(range, text, mouseX, mouseY) {
     removeShortcutToolbar();
 
     shortcutToolbar = document.createElement('div');
@@ -56,7 +56,7 @@ async function showShortcutToolbar(range, text) {
                 shortcutToolbar.appendChild(button);
             });
         }
-        
+
         // "More Actions" button for settings
         const moreButton = document.createElement('button');
         moreButton.innerHTML = ICONS.EllipsisHorizontalIcon;
@@ -71,13 +71,10 @@ async function showShortcutToolbar(range, text) {
         const rect = range.getBoundingClientRect();
         const toolbarRect = shortcutToolbar.getBoundingClientRect();
 
-        let top = window.scrollY + rect.top - toolbarRect.height - 8;
-        let left = window.scrollX + rect.left + (rect.width / 2) - (toolbarRect.width / 2);
+        let top = mouseY + 8;
+        let left = mouseX - (toolbarRect.width / 2);
 
-        // Boundary checks
-        if (top < window.scrollY + 10) {
-            top = window.scrollY + rect.bottom + 8;
-        }
+        // Boundary checks (left/right only; keep toolbar below the cursor)
         if (left < window.scrollX + 10) {
             left = window.scrollX + 10;
         }
@@ -99,7 +96,7 @@ document.addEventListener('mouseup', (event) => {
     if (event.target.closest && event.target.closest('#ai-sidekick-shortcut-toolbar')) {
         return;
     }
-    
+
     const selection = window.getSelection();
     const text = selection.toString().trim();
 
@@ -110,7 +107,7 @@ document.addEventListener('mouseup', (event) => {
             return;
         }
         const range = selection.getRangeAt(0);
-        showShortcutToolbar(range, text);
+        showShortcutToolbar(range, text, event.clientX, event.clientY);
     } else {
         removeShortcutToolbar();
     }

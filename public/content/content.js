@@ -17,7 +17,7 @@ function removeShortcutToolbar() {
     }
 }
 
-async function showShortcutToolbar(range, text) {
+async function showShortcutToolbar(range, text, mouseX, mouseY) {
     removeShortcutToolbar();
 
     shortcutToolbar = document.createElement('div');
@@ -71,18 +71,18 @@ async function showShortcutToolbar(range, text) {
         const rect = range.getBoundingClientRect();
         const toolbarRect = shortcutToolbar.getBoundingClientRect();
 
-        let top = window.scrollY + rect.top - toolbarRect.height - 8;
-        let left = window.scrollX + rect.left + (rect.width / 2) - (toolbarRect.width / 2);
+        let top = mouseY + 8;
+        let left = mouseX - (toolbarRect.width / 2);
 
-        // Boundary checks
-        if (top < window.scrollY + 10) {
-            top = window.scrollY + rect.bottom + 8;
+        // Boundary checks: keep below cursor; clamp within viewport horizontally and vertically
+        if (left < 10) {
+            left = 10;
         }
-        if (left < window.scrollX + 10) {
-            left = window.scrollX + 10;
+        if (left + toolbarRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - toolbarRect.width - 10;
         }
-        if (left + toolbarRect.width > window.scrollX + window.innerWidth - 10) {
-            left = window.scrollX + window.innerWidth - toolbarRect.width - 10;
+        if (top + toolbarRect.height > window.innerHeight - 10) {
+            top = window.innerHeight - toolbarRect.height - 10;
         }
 
         shortcutToolbar.style.top = `${top}px`;
@@ -110,7 +110,7 @@ document.addEventListener('mouseup', (event) => {
             return;
         }
         const range = selection.getRangeAt(0);
-        showShortcutToolbar(range, text);
+        showShortcutToolbar(range, text, event.clientX, event.clientY);
     } else {
         removeShortcutToolbar();
     }

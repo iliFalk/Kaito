@@ -1,5 +1,5 @@
 #ai-sidekick-shortcut-toolbar {
-  position: absolute;
+  position: fixed;
   z-index: 2147483647;
   background-color: rgba(203, 203, 203, 0.9); /* Corresponds to --layer-01 */
   backdrop-filter: blur(4px);

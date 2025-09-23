@@ -129,8 +129,8 @@ const Options = () => {
              React.createElement('div', { className: "mb-8" },
                 React.createElement('h2', { className: "text-lg font-bold mb-2 text-text-secondary" }, "Context Menu Preview"),
                 React.createElement('p', { className: "text-sm text-text-placeholder mb-4" }, "This is how the context menu will look when you select text on a webpage. The changes you make below will be reflected here live."),
-                React.createElement('div', { className: "bg-black/50 p-8 rounded-lg flex justify-center items-center" },
-                    React.createElement('div', { className: "bg-layer-01/90 backdrop-blur-sm rounded-lg shadow-lg p-0.5 flex flex-row gap-1 h-6" },
+                React.createElement('div', { className: "bg-black/20 p-8 rounded-lg flex justify-center items-center" },
+                    React.createElement('div', { className: "bg-layer-01/70 backdrop-blur-sm rounded-lg shadow-lg p-0.5 flex flex-row gap-1 h-6" },
                         React.createElement('button', { title: "Quote Text", className: "group relative p-1 rounded-md text-text-secondary hover:bg-layer-hover/70 hover:text-text-primary transition-colors" },
                             React.createElement(Icon, { name: "ChatBubbleLeftRightIcon", className: "w-4 h-4" })
                         ),
