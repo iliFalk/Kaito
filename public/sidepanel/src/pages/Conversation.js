@@ -94,13 +94,15 @@ const Conversation = () => {
     const [pageContext, setPageContext] = useState(null);
 
     const [shortcuts] = useLocalStorage('shortcuts', DEFAULT_SHORTCUTS);
-    const [models] = useLocalStorage('ai_models', DEFAULT_MODELS);
+    const [models, setModels] = useLocalStorage('ai_models', DEFAULT_MODELS);
     const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
+    const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
     
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
     const textareaRef = useRef(null);
     const actionsDropdownRef = useRef(null);
+    const modelDropdownRef = useRef(null);
 
     const messages = currentConversationId ? conversations[currentConversationId] || [] : [];
     const activeModel = models.find(m => m.isDefault) || models[0] || DEFAULT_MODELS[0];
@@ -129,6 +131,9 @@ const Conversation = () => {
         const handleClickOutside = (event) => {
             if (actionsDropdownRef.current && !actionsDropdownRef.current.contains(event.target)) {
                 setIsActionsDropdownOpen(false);
+            }
+            if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target)) {
+                setIsModelDropdownOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -340,7 +345,16 @@ const Conversation = () => {
         }
         handleSend({ prompt });
     };
-
+ 
+    const handleModelSelect = (modelId) => {
+        setModels(prev => prev.map(m => ({ ...m, isDefault: m.id === modelId })));
+        setIsModelDropdownOpen(false);
+    };
+ 
+    const handleModelDropdownToggle = () => {
+        setIsModelDropdownOpen(prev => !prev);
+    };
+ 
     if (!activeModel) {
         return (
             React.createElement('div', { className: "flex flex-col items-center justify-center h-full text-center p-4" },
@@ -460,9 +474,36 @@ const Conversation = () => {
                         )
                     ) : (
                         React.createElement('div', { className: "flex items-center justify-between mb-2 px-1" },
-                            React.createElement('div', { className: "flex items-center gap-1 text-sm font-semibold text-text-secondary bg-layer-02 rounded-lg px-3 py-1.5" },
-                                React.createElement(Icon, { name: "CpuChipIcon", className: "w-4 h-4" }),
-                                React.createElement('span', null, activeModel.name)
+                            React.createElement('div', { className: "relative", ref: modelDropdownRef, style: { zIndex: 60 } },
+                                React.createElement('button', {
+                                    type: "button",
+                                    onClick: handleModelDropdownToggle,
+                                    'aria-haspopup': "listbox",
+                                    'aria-expanded': isModelDropdownOpen,
+                                    className: "flex items-center gap-1 text-sm font-semibold text-text-secondary bg-layer-02 rounded-lg px-3 py-1.5 hover:bg-layer-03 transition-colors cursor-pointer"
+                                },
+                                    React.createElement(Icon, { name: "SparklesIcon", className: "w-4 h-4" }),
+                                    React.createElement('span', null, activeModel.name),
+                                    React.createElement('svg', { className: `w-4 h-4 ml-1 transition-transform ${isModelDropdownOpen ? 'rotate-180' : ''}`, xmlns: "http://www.w3.org/2000/svg", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor" },
+                                        React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M19 9l-7 7-7-7" })
+                                    )
+                                ),
+                                isModelDropdownOpen && React.createElement('div', { className: "absolute bottom-full mb-1 w-56 bg-layer-02 rounded-lg shadow-lg border border-border-strong z-50" },
+                                    React.createElement('ul', { className: "py-1 max-h-48 overflow-y-auto", role: "listbox" },
+                                        models.length === 0
+                                            ? React.createElement('li', { className: "px-3 py-2 text-sm text-text-secondary" }, "No models configured")
+                                            : models.map(model => React.createElement('li', { key: model.id },
+                                                React.createElement('button', {
+                                                    onClick: () => handleModelSelect(model.id),
+                                                    className: `w-full text-left px-3 py-2 text-sm flex items-center gap-3 hover:bg-layer-03 ${model.isDefault ? 'text-interactive' : 'text-text-primary'}`
+                                                },
+                                                    React.createElement(Icon, { name: "SparklesIcon", className: "w-5 h-5 text-text-secondary" }),
+                                                    React.createElement('span', { className: "truncate" }, model.name),
+                                                    model.isDefault && React.createElement('span', { className: "ml-auto text-xs text-interactive" }, "Default")
+                                                )
+                                            ))
+                                    )
+                                )
                             ),
                             React.createElement('div', { className: "flex items-center text-text-secondary" },
                                 React.createElement('input', { type: "file", ref: fileInputRef, onChange: handleFileChange, className: "hidden", accept: "image/*", disabled: !canAttachFile }),

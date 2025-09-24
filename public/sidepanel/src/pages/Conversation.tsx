@@ -93,13 +93,15 @@ const Conversation: React.FC = () => {
     const [pageContext, setPageContext] = useState<{ title: string; url: string } | null>(null);
 
     const [shortcuts] = useLocalStorage('shortcuts', DEFAULT_SHORTCUTS);
-    const [models] = useLocalStorage<AIModel[]>('ai_models', DEFAULT_MODELS);
+    const [models, setModels] = useLocalStorage<AIModel[]>('ai_models', DEFAULT_MODELS);
     const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
+    const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const actionsDropdownRef = useRef<HTMLDivElement>(null);
+    const modelDropdownRef = useRef<HTMLDivElement>(null);
 
     const messages = currentConversationId ? conversations[currentConversationId] || [] : [];
     const activeModel = models.find(m => m.isDefault) || models[0] || DEFAULT_MODELS[0];
@@ -128,6 +130,9 @@ const Conversation: React.FC = () => {
         const handleClickOutside = (event: MouseEvent) => {
             if (actionsDropdownRef.current && !actionsDropdownRef.current.contains(event.target as Node)) {
                 setIsActionsDropdownOpen(false);
+            }
+            if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target as Node)) {
+                setIsModelDropdownOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -339,7 +344,16 @@ const Conversation: React.FC = () => {
         }
         handleSend({ prompt });
     };
-
+ 
+    const handleModelSelect = (modelId: string) => {
+        setModels(prev => prev.map(m => ({ ...m, isDefault: m.id === modelId })));
+        setIsModelDropdownOpen(false);
+    };
+ 
+    const handleModelDropdownToggle = () => {
+        setIsModelDropdownOpen(prev => !prev);
+    };
+ 
     if (!activeModel) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center p-4">
@@ -464,9 +478,44 @@ const Conversation: React.FC = () => {
                         </div>
                     ) : (
                         <div className="flex items-center justify-between mb-2 px-1">
-                            <div className="flex items-center gap-1 text-sm font-semibold text-text-secondary bg-layer-02 rounded-lg px-3 py-1.5">
-                                    <Icon name="CpuChipIcon" className="w-4 h-4" />
+                            <div className="relative" ref={modelDropdownRef} style={{ zIndex: 60 }}>
+                                <button
+                                    type="button"
+                                    onClick={handleModelDropdownToggle}
+                                    aria-haspopup="listbox"
+                                    aria-expanded={isModelDropdownOpen}
+                                    className="flex items-center gap-1 text-sm font-semibold text-text-secondary bg-layer-02 rounded-lg px-3 py-1.5 hover:bg-layer-03 transition-colors cursor-pointer"
+                                >
+                                    <Icon name="SparklesIcon" className="w-4 h-4" />
                                     <span>{activeModel.name}</span>
+                                    <svg className={`w-4 h-4 ml-1 transition-transform ${isModelDropdownOpen ? 'rotate-180' : ''}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                {isModelDropdownOpen && (
+                                    <div className="absolute bottom-full mb-1 w-56 bg-layer-02 rounded-lg shadow-lg border border-border-strong z-50">
+                                        <ul className="py-1 max-h-48 overflow-y-auto" role="listbox">
+                                            {models.length === 0 ? (
+                                                <li className="px-3 py-2 text-sm text-text-secondary">No models configured</li>
+                                            ) : (
+                                                models.map(model => (
+                                                    <li key={model.id}>
+                                                        <button
+                                                            onClick={() => handleModelSelect(model.id)}
+                                                            className={`w-full text-left px-3 py-2 text-sm flex items-center gap-3 hover:bg-layer-03 ${model.isDefault ? 'text-interactive' : 'text-text-primary'}`}
+                                                        >
+                                                            <Icon name="SparklesIcon" className="w-5 h-5 text-text-secondary" />
+                                                            <span className="truncate">{model.name}</span>
+                                                            {model.isDefault && (
+                                                                <span className="ml-auto text-xs text-interactive">Default</span>
+                                                            )}
+                                                        </button>
+                                                    </li>
+                                                ))
+                                            )}
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
                             <div className="flex items-center text-text-secondary">
                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" disabled={!canAttachFile} />
